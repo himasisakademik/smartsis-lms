@@ -319,7 +319,6 @@ export default async function DashboardPage() {
             </div>
             <div className="scale-75 origin-right opacity-50 group-hover:opacity-100 transition-opacity">
               <UserButton
-                afterSignOutUrl="/"
                 appearance={{ elements: { userButtonAvatarBox: "w-8 h-8" } }}
               />
             </div>
@@ -350,7 +349,9 @@ export default async function DashboardPage() {
             <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
               <Command className="w-4 h-4" />
             </div>
-            <span className="font-bold text-slate-900 tracking-tight">SMARTSIS</span>
+            <span className="font-bold text-slate-900 tracking-tight">
+              SMARTSIS
+            </span>
           </div>
 
           {}

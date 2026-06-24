@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, UserButton, useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -27,24 +27,27 @@ const loggedInLinks = [
 
 export function Header() {
   const pathname = usePathname();
+  const { isLoaded, isSignedIn } = useAuth();
+  const showSignedIn = isLoaded && isSignedIn;
+  const showSignedOut = isLoaded && !isSignedIn;
 
   return (
     <nav className="relative z-10 flex items-center justify-between px-6 lg:px-12 py-5 max-w-7xl mx-auto">
       <div>
-        <SignedIn>
+        {showSignedIn && (
           <Link href="/dashboard" className="flex items-center gap-3 group">
             <Logo />
           </Link>
-        </SignedIn>
-        <SignedOut>
+        )}
+        {showSignedOut && (
           <Link href="/" className="flex items-center gap-3 group">
             <Logo />
           </Link>
-        </SignedOut>
+        )}
       </div>
 
       <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <SignedOut>
+        {showSignedOut && (
           <div className="flex items-center gap-8 text-sm text-slate-400">
             {loggedOutLinks.map((link) => (
               <Link
@@ -56,9 +59,9 @@ export function Header() {
               </Link>
             ))}
           </div>
-        </SignedOut>
+        )}
 
-        <SignedIn>
+        {showSignedIn && (
           <div className="flex items-center gap-1">
             {loggedInLinks.map((link) => {
               const Icon = link.icon;
@@ -83,101 +86,105 @@ export function Header() {
               );
             })}
           </div>
-        </SignedIn>
+        )}
       </div>
 
       <div className="flex items-center gap-3">
-        <SignedOut>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="md:hidden">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+        {showSignedOut && (
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+                >
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="bg-white border-slate-200"
               >
-                <Menu className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="bg-white border-slate-200"
-            >
-              {loggedOutLinks.map((link) => (
-                <DropdownMenuItem key={link.href} asChild>
-                  <Link
-                    href={link.href}
-                    className="text-slate-600 cursor-pointer"
-                  >
-                    {link.label}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <SignInButton mode="modal">
-            <Button
-              variant="ghost"
-              className="text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-            >
-              Sign in
-            </Button>
-          </SignInButton>
-          <Link href="/dashboard" className="hidden sm:block">
-            <Button className="bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white border-0 shadow-lg shadow-blue-600/25">
-              Start Learning
-            </Button>
-          </Link>
-        </SignedOut>
-
-        <SignedIn>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="md:hidden">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-slate-400 hover:text-slate-900 hover:bg-slate-100"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="bg-white border-slate-200"
-            >
-              {loggedInLinks.map((link) => {
-                const Icon = link.icon;
-                const isActive =
-                  pathname === link.href ||
-                  (link.href !== "/dashboard" &&
-                    pathname.startsWith(link.href));
-
-                return (
+                {loggedOutLinks.map((link) => (
                   <DropdownMenuItem key={link.href} asChild>
                     <Link
                       href={link.href}
-                      className={cn(
-                        "flex items-center gap-2 cursor-pointer",
-                        isActive ? "text-blue-700" : "text-slate-600",
-                      )}
+                      className="text-slate-600 cursor-pointer"
                     >
-                      <Icon className="w-4 h-4" />
                       {link.label}
                     </Link>
                   </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "w-9 h-9 ring-2 ring-blue-500/20",
-              },
-            }}
-          />
-        </SignedIn>
+            <SignInButton mode="modal">
+              <Button
+                variant="ghost"
+                className="text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+              >
+                Sign in
+              </Button>
+            </SignInButton>
+            <Link href="/dashboard" className="hidden sm:block">
+              <Button className="bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white border-0 shadow-lg shadow-blue-600/25">
+                Start Learning
+              </Button>
+            </Link>
+          </>
+        )}
+
+        {showSignedIn && (
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+                >
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="bg-white border-slate-200"
+              >
+                {loggedInLinks.map((link) => {
+                  const Icon = link.icon;
+                  const isActive =
+                    pathname === link.href ||
+                    (link.href !== "/dashboard" &&
+                      pathname.startsWith(link.href));
+
+                  return (
+                    <DropdownMenuItem key={link.href} asChild>
+                      <Link
+                        href={link.href}
+                        className={cn(
+                          "flex items-center gap-2 cursor-pointer",
+                          isActive ? "text-blue-700" : "text-slate-600",
+                        )}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {link.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "w-9 h-9 ring-2 ring-blue-500/20",
+                },
+              }}
+            />
+          </>
+        )}
       </div>
     </nav>
   );
