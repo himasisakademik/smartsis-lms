@@ -39,7 +39,7 @@ export default function AdminAuthGuard({
       return;
     }
 
-    fetch(`/api/admin-check?email=${encodeURIComponent(email)}`)
+    fetch("/api/admin-check")
       .then((res) => res.json())
       .then((data) => {
         setAuthState({

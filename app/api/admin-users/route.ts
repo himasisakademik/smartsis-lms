@@ -1,3 +1,4 @@
+import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import {
   isSuperAdmin,
@@ -7,8 +8,10 @@ import {
   SUPER_ADMIN_EMAIL,
 } from "@/lib/admin";
 
-function requireSuperAdmin(request: NextRequest) {
-  const email = request.headers.get("x-admin-email");
+async function requireSuperAdmin() {
+  const user = await currentUser();
+  const email = user?.emailAddresses?.[0]?.emailAddress;
+
   if (!email) {
     return { error: "Unauthorized", status: 401 };
   }
@@ -18,8 +21,8 @@ function requireSuperAdmin(request: NextRequest) {
   return { email };
 }
 
-export async function GET(req: NextRequest) {
-  const auth = requireSuperAdmin(req);
+export async function GET() {
+  const auth = await requireSuperAdmin();
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -32,7 +35,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = requireSuperAdmin(req);
+  const auth = await requireSuperAdmin();
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -66,7 +69,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const auth = requireSuperAdmin(req);
+  const auth = await requireSuperAdmin();
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
