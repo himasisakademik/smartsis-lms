@@ -1,6 +1,7 @@
 import { client, writeClient } from "@/sanity/lib/client";
 
-export const SUPER_ADMIN_EMAIL = "nabilzihni08@gmail.com";
+export const SUPER_ADMIN_EMAIL =
+  process.env.SUPER_ADMIN_EMAIL || "stmihimasis@gmail.com";
 
 export function isSuperAdmin(email: string | null | undefined): boolean {
   if (!email) return false;
