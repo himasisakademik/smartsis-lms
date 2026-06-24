@@ -1,80 +1,35 @@
 "use client";
 
-import { Suspense } from "react";
-import Link from "next/link";
-import { useDocuments } from "@sanity/sdk-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
+  ArrowRight,
+  ArrowUpRight,
   BookOpen,
+  CheckCircle2,
+  Circle,
+  ExternalLink,
   Layers,
   PlayCircle,
   Tag,
-  ArrowUpRight,
-  ExternalLink,
-  CheckCircle2,
-  Circle,
-  ArrowRight,
 } from "lucide-react";
-import { projectId, dataset } from "@/sanity/env";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { fetchAdminDocuments } from "@/components/admin/documents/createAdminDocument";
+import type { AdminDocumentType } from "@/lib/admin-document-types";
 
-function StatCardContent({ documentType }: { documentType: string }) {
-  const { data: documents } = useDocuments({
-    documentType,
-    projectId,
-    dataset,
-  });
+type Counts = Record<AdminDocumentType, number>;
 
-  return (
-    <span className="text-3xl font-semibold tracking-tight text-white">
-      {documents?.length ?? 0}
-    </span>
-  );
-}
+const EMPTY_COUNTS: Counts = {
+  category: 0,
+  course: 0,
+  lesson: 0,
+  module: 0,
+};
 
-interface StatCardProps {
-  title: string;
-  icon: React.ComponentType<{ className?: string }>;
-  documentType: string;
-  href: string;
-  accent: string;
-  iconBg: string;
-}
-
-function StatCard({
-  title,
-  icon: Icon,
-  documentType,
-  href,
-  accent,
-  iconBg,
-}: StatCardProps) {
-  return (
-    <Link href={href} className="group">
-      <div className="relative overflow-hidden rounded-xl bg-white border border-slate-200 p-5 hover:bg-slate-50 hover:border-slate-200 transition-all duration-300">
-        <div className="flex items-start justify-between mb-6">
-          <div
-            className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconBg}`}
-          >
-            <Icon className={`h-5 w-5 ${accent}`} />
-          </div>
-          <ArrowUpRight className="h-4 w-4 text-slate-700 group-hover:text-slate-400 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all duration-300" />
-        </div>
-        <Suspense
-          fallback={<Skeleton className="h-9 w-12 bg-slate-50 rounded" />}
-        >
-          <StatCardContent documentType={documentType} />
-        </Suspense>
-        <p className="text-[13px] text-slate-500 mt-1 font-medium">{title}</p>
-      </div>
-    </Link>
-  );
-}
-
-const STAT_CARDS: StatCardProps[] = [
+const STAT_CARDS = [
   {
     title: "Courses",
     icon: BookOpen,
-    documentType: "course",
+    documentType: "course" as const,
     href: "/admin/courses",
     accent: "text-blue-600",
     iconBg: "bg-blue-600/10",
@@ -82,119 +37,28 @@ const STAT_CARDS: StatCardProps[] = [
   {
     title: "Modules",
     icon: Layers,
-    documentType: "module",
+    documentType: "module" as const,
     href: "/admin/modules",
-    accent: "text-blue-400",
-    iconBg: "bg-blue-500/10",
+    accent: "text-indigo-600",
+    iconBg: "bg-indigo-600/10",
   },
   {
     title: "Lessons",
     icon: PlayCircle,
-    documentType: "lesson",
+    documentType: "lesson" as const,
     href: "/admin/lessons",
-    accent: "text-emerald-400",
-    iconBg: "bg-emerald-500/10",
+    accent: "text-emerald-600",
+    iconBg: "bg-emerald-600/10",
   },
   {
     title: "Categories",
     icon: Tag,
-    documentType: "category",
+    documentType: "category" as const,
     href: "/admin/categories",
-    accent: "text-amber-400",
-    iconBg: "bg-amber-500/10",
+    accent: "text-amber-600",
+    iconBg: "bg-amber-600/10",
   },
 ];
-
-function ContentHealthContent() {
-  const { data: courses } = useDocuments({
-    documentType: "course",
-    projectId,
-    dataset,
-  });
-  const { data: modules } = useDocuments({
-    documentType: "module",
-    projectId,
-    dataset,
-  });
-  const { data: lessons } = useDocuments({
-    documentType: "lesson",
-    projectId,
-    dataset,
-  });
-  const { data: categories } = useDocuments({
-    documentType: "category",
-    projectId,
-    dataset,
-  });
-
-  const checks = [
-    {
-      label: "Courses",
-      passed: (courses?.length || 0) > 0,
-      count: courses?.length || 0,
-    },
-    {
-      label: "Modules",
-      passed: (modules?.length || 0) > 0,
-      count: modules?.length || 0,
-    },
-    {
-      label: "Lessons",
-      passed: (lessons?.length || 0) > 0,
-      count: lessons?.length || 0,
-    },
-    {
-      label: "Categories",
-      passed: (categories?.length || 0) > 0,
-      count: categories?.length || 0,
-    },
-  ];
-
-  const passedCount = checks.filter((c) => c.passed).length;
-  const percentage = Math.round((passedCount / checks.length) * 100);
-
-  return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-white">
-          {percentage}% Complete
-        </span>
-        <span className="text-xs text-slate-600">
-          {passedCount}/{checks.length} checks
-        </span>
-      </div>
-      <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-700 ease-out"
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-      <div className="space-y-3">
-        {checks.map((check) => (
-          <div key={check.label} className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              {check.passed ? (
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              ) : (
-                <Circle className="h-4 w-4 text-slate-700" />
-              )}
-              <span
-                className={`text-sm ${check.passed ? "text-slate-300" : "text-slate-600"}`}
-              >
-                {check.label}
-              </span>
-            </div>
-            <span
-              className={`text-xs font-mono ${check.passed ? "text-slate-500" : "text-slate-700"}`}
-            >
-              {check.count}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 const QUICK_LINKS = [
   {
@@ -209,21 +73,21 @@ const QUICK_LINKS = [
     desc: "Organize course modules",
     href: "/admin/modules",
     icon: Layers,
-    accent: "text-blue-400",
+    accent: "text-indigo-600",
   },
   {
     label: "Lessons",
     desc: "Edit lesson content",
     href: "/admin/lessons",
     icon: PlayCircle,
-    accent: "text-emerald-400",
+    accent: "text-emerald-600",
   },
   {
     label: "Categories",
     desc: "Manage content categories",
     href: "/admin/categories",
     icon: Tag,
-    accent: "text-amber-400",
+    accent: "text-amber-600",
   },
 ];
 
@@ -250,22 +114,110 @@ const WORKFLOW_STEPS = [
   },
 ];
 
-export default function AdminDashboard() {
+function StatCard({
+  title,
+  icon: Icon,
+  href,
+  accent,
+  iconBg,
+  count,
+}: (typeof STAT_CARDS)[number] & { count: number }) {
   return (
-    <div className="max-w-[1200px] mx-auto space-y-10">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pt-2">
+    <Link href={href} className="group">
+      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:border-blue-200 hover:bg-blue-50/40">
+        <div className="mb-6 flex items-start justify-between">
+          <div
+            className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconBg}`}
+          >
+            <Icon className={`h-5 w-5 ${accent}`} />
+          </div>
+          <ArrowUpRight className="h-4 w-4 text-slate-400 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-blue-500" />
+        </div>
+        <span className="text-3xl font-semibold tracking-tight text-slate-900">
+          {count}
+        </span>
+        <p className="mt-1 text-[13px] font-medium text-slate-500">{title}</p>
+      </div>
+    </Link>
+  );
+}
+
+export default function AdminDashboard() {
+  const [counts, setCounts] = useState<Counts>(EMPTY_COUNTS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCounts() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const [courses, modules, lessons, categories] = await Promise.all([
+          fetchAdminDocuments("course"),
+          fetchAdminDocuments("module"),
+          fetchAdminDocuments("lesson"),
+          fetchAdminDocuments("category"),
+        ]);
+
+        if (isMounted) {
+          setCounts({
+            category: categories.documents.length,
+            course: courses.documents.length,
+            lesson: lessons.documents.length,
+            module: modules.documents.length,
+          });
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(
+            err instanceof Error ? err.message : "Gagal memuat ringkasan admin",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadCounts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const checks = useMemo(
+    () =>
+      STAT_CARDS.map((card) => ({
+        label: card.title,
+        passed: counts[card.documentType] > 0,
+        count: counts[card.documentType],
+      })),
+    [counts],
+  );
+
+  const passedCount = checks.filter((check) => check.passed).length;
+  const percentage = Math.round((passedCount / checks.length) * 100);
+
+  return (
+    <div className="mx-auto max-w-[1200px] space-y-10">
+      <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
             Dashboard
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="mt-1 text-sm text-slate-500">
             Overview of your content management system
           </p>
         </div>
         <Link href="/studio" target="_blank">
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-400 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-900 transition-all"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900"
           >
             <ExternalLink className="h-3.5 w-3.5" />
             Open Studio
@@ -273,34 +225,45 @@ export default function AdminDashboard() {
         </Link>
       </div>
 
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      {error && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </p>
+      )}
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {STAT_CARDS.map((card) => (
-          <StatCard key={card.documentType} {...card} />
+          <StatCard
+            key={card.documentType}
+            {...card}
+            count={isLoading ? 0 : counts[card.documentType]}
+          />
         ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3 space-y-5">
-          <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider">
+        <div className="space-y-5 lg:col-span-3">
+          <h2 className="text-sm font-medium uppercase tracking-wider text-slate-500">
             Quick Access
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {QUICK_LINKS.map((item) => {
               const Icon = item.icon;
+
               return (
                 <Link key={item.href} href={item.href} className="group">
-                  <div className="rounded-xl bg-white border border-slate-200 p-4 hover:bg-slate-50 hover:border-slate-200 transition-all duration-300">
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 transition-all duration-300 hover:border-blue-200 hover:bg-blue-50/40">
                     <div className="flex items-center gap-3">
-                      <Icon className={`h-4 w-4 ${item.accent} shrink-0`} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-200 group-hover:text-slate-900 transition-colors">
+                      <Icon className={`h-4 w-4 shrink-0 ${item.accent}`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-slate-900">
                           {item.label}
                         </p>
-                        <p className="text-xs text-slate-600 truncate">
+                        <p className="truncate text-xs text-slate-500">
                           {item.desc}
                         </p>
                       </div>
-                      <ArrowRight className="h-3.5 w-3.5 text-slate-700 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400 transition-all group-hover:translate-x-0.5 group-hover:text-blue-500" />
                     </div>
                   </div>
                 </Link>
@@ -309,45 +272,68 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-5">
-          <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider">
+        <div className="space-y-5 lg:col-span-2">
+          <h2 className="text-sm font-medium uppercase tracking-wider text-slate-500">
             Content Health
           </h2>
-          <div className="rounded-xl bg-white border border-slate-200 p-5">
-            <Suspense
-              fallback={
-                <div className="space-y-4">
-                  <Skeleton className="h-1.5 w-full bg-slate-50 rounded-full" />
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="flex items-center gap-2.5">
-                      <Skeleton className="h-4 w-4 bg-slate-50 rounded-full" />
-                      <Skeleton className="h-4 w-24 bg-slate-50 rounded" />
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-900">
+                  {percentage}% Complete
+                </span>
+                <span className="text-xs text-slate-500">
+                  {passedCount}/{checks.length} checks
+                </span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all duration-700 ease-out"
+                  style={{ width: `${percentage}%` }}
+                />
+              </div>
+              <div className="space-y-3">
+                {checks.map((check) => (
+                  <div
+                    key={check.label}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {check.passed ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-slate-300" />
+                      )}
+                      <span className="text-sm text-slate-700">
+                        {check.label}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              }
-            >
-              <ContentHealthContent />
-            </Suspense>
+                    <span className="font-mono text-xs text-slate-500">
+                      {check.count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="space-y-5">
-        <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider">
+        <h2 className="text-sm font-medium uppercase tracking-wider text-slate-500">
           Recommended Workflow
         </h2>
-        <div className="rounded-xl bg-white border border-slate-200 overflow-hidden">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="grid grid-cols-1 divide-y divide-slate-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
             {WORKFLOW_STEPS.map((item) => (
-              <div key={item.step} className="p-5 group">
-                <span className="text-[10px] font-bold text-slate-700 uppercase tracking-widest">
+              <div key={item.step} className="p-5">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                   Step {item.step}
                 </span>
-                <h3 className="text-sm font-medium text-white mt-2 mb-1">
+                <h3 className="mb-1 mt-2 text-sm font-medium text-slate-900">
                   {item.title}
                 </h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <p className="text-xs leading-relaxed text-slate-500">
                   {item.desc}
                 </p>
               </div>

@@ -1,8 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { CategoryEditor } from "@/components/admin/editors/CategoryEditor";
-import { projectId, dataset } from "@/sanity/env";
+import { AdminDocumentEditor } from "@/components/admin/editors/AdminDocumentEditor";
 
 export default function EditCategoryPage({
   params,
@@ -11,7 +10,5 @@ export default function EditCategoryPage({
 }) {
   const { id } = use(params);
 
-  return (
-    <CategoryEditor documentId={id} projectId={projectId} dataset={dataset} />
-  );
+  return <AdminDocumentEditor documentId={id} documentType="category" />;
 }

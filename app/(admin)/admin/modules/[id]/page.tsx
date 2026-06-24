@@ -1,8 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { ModuleEditor } from "@/components/admin/editors/ModuleEditor";
-import { projectId, dataset } from "@/sanity/env";
+import { AdminDocumentEditor } from "@/components/admin/editors/AdminDocumentEditor";
 
 export default function EditModulePage({
   params,
@@ -11,7 +10,5 @@ export default function EditModulePage({
 }) {
   const { id } = use(params);
 
-  return (
-    <ModuleEditor documentId={id} projectId={projectId} dataset={dataset} />
-  );
+  return <AdminDocumentEditor documentId={id} documentType="module" />;
 }

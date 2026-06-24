@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = "smartsis-v2";
+const CACHE_NAME = "smartsis-v3";
 const OFFLINE_URL = "/offline";
 
 // Assets to pre-cache on install

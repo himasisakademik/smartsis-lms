@@ -1,10 +1,9 @@
-import { Suspense } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
-import AdminBreadcrumb from "@/components/admin/layout/AdminBreadcrumb";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import { Providers } from "@/components/Providers";
+import { Suspense } from "react";
 import AdminAuthGuard from "@/components/admin/AdminAuthGuard";
+import AdminBreadcrumb from "@/components/admin/layout/AdminBreadcrumb";
 import AdminHeader from "@/components/admin/layout/AdminHeader";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -33,15 +32,13 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
           }
         >
           <AdminAuthGuard>
-            <Providers>
-              <AdminHeader />
-              <div className="relative z-10 px-6 py-4">
-                <AdminBreadcrumb />
-              </div>
-              <main className="relative z-10 px-6 pb-8 container mx-auto">
-                {children}
-              </main>
-            </Providers>
+            <AdminHeader />
+            <div className="relative z-10 px-6 py-4">
+              <AdminBreadcrumb />
+            </div>
+            <main className="relative z-10 px-6 pb-8 container mx-auto">
+              {children}
+            </main>
           </AdminAuthGuard>
         </Suspense>
       </div>

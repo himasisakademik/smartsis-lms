@@ -1,8 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { LessonEditor } from "@/components/admin/editors/LessonEditor";
-import { projectId, dataset } from "@/sanity/env";
+import { AdminDocumentEditor } from "@/components/admin/editors/AdminDocumentEditor";
 
 export default function EditLessonPage({
   params,
@@ -11,7 +10,5 @@ export default function EditLessonPage({
 }) {
   const { id } = use(params);
 
-  return (
-    <LessonEditor documentId={id} projectId={projectId} dataset={dataset} />
-  );
+  return <AdminDocumentEditor documentId={id} documentType="lesson" />;
 }
