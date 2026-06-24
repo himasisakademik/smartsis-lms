@@ -1,33 +1,35 @@
 "use client";
 
-import { Suspense, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  useApplyDocumentActions,
-  createDocument,
-  createDocumentHandle,
-} from "@sanity/sdk-react";
+import { Suspense, useState } from "react";
 import { ListPageHeader, SearchInput } from "@/components/admin/shared";
 import { ModuleListSkeleton } from "@/components/admin/shared/DocumentSkeleton";
+import { createAdminDocument } from "../createAdminDocument";
 import { ModuleListContent } from "./ModuleListContent";
 import type { ModuleListProps } from "./types";
 
 export function ModuleList({ projectId, dataset }: ModuleListProps) {
   const router = useRouter();
-  const [isCreating, startTransition] = useTransition();
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const apply = useApplyDocumentActions();
 
-  const handleCreateModule = () => {
-    startTransition(async () => {
-      const newDocHandle = createDocumentHandle({
-        documentId: crypto.randomUUID(),
-        documentType: "module",
-      });
+  const handleCreateModule = async () => {
+    if (isCreating) return;
 
-      await apply(createDocument(newDocHandle));
-      router.push(`/admin/modules/${newDocHandle.documentId}`);
-    });
+    setIsCreating(true);
+    setCreateError(null);
+
+    try {
+      const result = await createAdminDocument("module");
+      router.push(`/admin/modules/${result.documentId}`);
+    } catch (err) {
+      setCreateError(
+        err instanceof Error ? err.message : "Gagal membuat module",
+      );
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -45,6 +47,12 @@ export function ModuleList({ projectId, dataset }: ModuleListProps) {
         onChange={setSearchQuery}
         placeholder="Search modules..."
       />
+
+      {createError && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {createError}
+        </p>
+      )}
 
       <Suspense fallback={<ModuleListSkeleton />}>
         <ModuleListContent

@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = "smartsis-v1";
+const CACHE_NAME = "smartsis-v2";
 const OFFLINE_URL = "/offline";
 
 // Assets to pre-cache on install
@@ -37,14 +37,15 @@ self.addEventListener("fetch", (event) => {
   // Skip non-GET requests
   if (request.method !== "GET") return;
 
-  // Skip API calls, Clerk, and Sanity
+  // Skip authenticated/realtime surfaces and third-party auth/content APIs.
   const url = new URL(request.url);
   if (
     url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/admin") ||
+    url.pathname.startsWith("/studio") ||
     url.hostname.includes("clerk") ||
     url.hostname.includes("sanity") ||
-    url.hostname.includes("cdn.sanity") ||
-    url.pathname.startsWith("/studio")
+    url.hostname.includes("vercel")
   ) {
     return;
   }

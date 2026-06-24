@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { X, Download, Smartphone, Zap, Wifi, Star } from "lucide-react";
+import { Download, Smartphone, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -9,16 +10,26 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function PWAInstallPrompt() {
+  const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
-  const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
+  const isAdminSurface =
+    pathname?.startsWith("/admin") || pathname?.startsWith("/studio");
 
   useEffect(() => {
+    if (isAdminSurface) {
+      setDeferredPrompt(null);
+      return;
+    }
+
+    const navigatorWithStandalone = window.navigator as Navigator & {
+      standalone?: boolean;
+    };
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone === true;
+      navigatorWithStandalone.standalone === true;
 
     if (isStandalone) {
       setIsInstalled(true);
@@ -28,15 +39,10 @@ export function PWAInstallPrompt() {
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-
-      setTimeout(() => {
-        setShowPrompt(true);
-      }, 2000);
     };
 
     const handleAppInstalled = () => {
       setIsInstalled(true);
-      setShowPrompt(false);
       setDeferredPrompt(null);
     };
 
@@ -47,7 +53,7 @@ export function PWAInstallPrompt() {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
-  }, []);
+  }, [isAdminSurface]);
 
   const handleInstall = useCallback(async () => {
     if (!deferredPrompt) return;
@@ -58,26 +64,12 @@ export function PWAInstallPrompt() {
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === "accepted") {
       setIsInstalled(true);
-      setShowPrompt(false);
     }
     setIsInstalling(false);
     setDeferredPrompt(null);
   }, [deferredPrompt]);
 
-  const handleDismiss = () => {
-    setShowPrompt(false);
-
-    setTimeout(
-      () => {
-        if (!isInstalled) {
-          setShowPrompt(true);
-        }
-      },
-      60 * 60 * 1000,
-    );
-  };
-
-  if (isInstalled || !deferredPrompt) return null;
+  if (isAdminSurface || isInstalled || !deferredPrompt) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 animate-in slide-in-from-bottom flex justify-center pointer-events-none">
@@ -97,6 +89,7 @@ export function PWAInstallPrompt() {
 
         <div className="flex items-center gap-2 shrink-0">
           <button
+            type="button"
             onClick={handleInstall}
             disabled={isInstalling}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600 text-white font-semibold text-xs hover:bg-blue-700 transition-colors disabled:opacity-50"
@@ -108,6 +101,7 @@ export function PWAInstallPrompt() {
           </button>
 
           <button
+            type="button"
             onClick={() => setDeferredPrompt(null)}
             className="p-1.5 rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
           >

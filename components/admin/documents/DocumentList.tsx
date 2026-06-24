@@ -1,22 +1,23 @@
 "use client";
 
-import { Suspense, useState, useTransition } from "react";
+import {
+  type DocumentHandle,
+  useDocumentProjection,
+  useDocuments,
+} from "@sanity/sdk-react";
+import { ChevronRight, Loader2, Plus, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  useDocuments,
-  useDocumentProjection,
-  useApplyDocumentActions,
-  createDocument,
-  createDocumentHandle,
-  type DocumentHandle,
-} from "@sanity/sdk-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Suspense, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Plus, ChevronRight, Loader2, Search, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  type AdminDocumentType,
+  createAdminDocument,
+} from "./createAdminDocument";
 
 interface DocumentListProps {
-  documentType: string;
+  documentType: AdminDocumentType;
   title: string;
   description?: string;
   basePath: string;
@@ -120,9 +121,7 @@ function DocumentListContent({
       {documents.map((doc) => (
         <Suspense
           key={doc.documentId}
-          fallback={
-            <Skeleton className="h-16 w-full bg-slate-50 rounded-xl" />
-          }
+          fallback={<Skeleton className="h-16 w-full bg-slate-50 rounded-xl" />}
         >
           <DocumentItem {...doc} basePath={basePath} />
         </Suspense>
@@ -141,20 +140,26 @@ export function DocumentList({
   showCreateButton = true,
 }: DocumentListProps) {
   const router = useRouter();
-  const [isCreating, startTransition] = useTransition();
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const apply = useApplyDocumentActions();
 
-  const handleCreateDocument = () => {
-    startTransition(async () => {
-      const newDocHandle = createDocumentHandle({
-        documentId: crypto.randomUUID(),
-        documentType,
-      });
+  const handleCreateDocument = async () => {
+    if (isCreating) return;
 
-      await apply(createDocument(newDocHandle));
-      router.push(`${basePath}/${newDocHandle.documentId}`);
-    });
+    setIsCreating(true);
+    setCreateError(null);
+
+    try {
+      const result = await createAdminDocument(documentType);
+      router.push(`${basePath}/${result.documentId}`);
+    } catch (err) {
+      setCreateError(
+        err instanceof Error ? err.message : `Gagal membuat ${documentType}`,
+      );
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -205,6 +210,12 @@ export function DocumentList({
           </button>
         )}
       </div>
+
+      {createError && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {createError}
+        </p>
+      )}
 
       <Suspense fallback={<DocumentListFallback />}>
         <DocumentListContent

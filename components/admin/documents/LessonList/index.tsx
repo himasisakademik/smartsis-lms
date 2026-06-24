@@ -1,33 +1,35 @@
 "use client";
 
-import { Suspense, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  useApplyDocumentActions,
-  createDocument,
-  createDocumentHandle,
-} from "@sanity/sdk-react";
+import { Suspense, useState } from "react";
 import { ListPageHeader, SearchInput } from "@/components/admin/shared";
 import { HierarchicalListSkeleton } from "@/components/admin/shared/DocumentSkeleton";
+import { createAdminDocument } from "../createAdminDocument";
 import { LessonListContent } from "./LessonListContent";
 import type { LessonListProps } from "./types";
 
 export function LessonList({ projectId, dataset }: LessonListProps) {
   const router = useRouter();
-  const [isCreating, startTransition] = useTransition();
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const apply = useApplyDocumentActions();
 
-  const handleCreateLesson = () => {
-    startTransition(async () => {
-      const newDocHandle = createDocumentHandle({
-        documentId: crypto.randomUUID(),
-        documentType: "lesson",
-      });
+  const handleCreateLesson = async () => {
+    if (isCreating) return;
 
-      await apply(createDocument(newDocHandle));
-      router.push(`/admin/lessons/${newDocHandle.documentId}`);
-    });
+    setIsCreating(true);
+    setCreateError(null);
+
+    try {
+      const result = await createAdminDocument("lesson");
+      router.push(`/admin/lessons/${result.documentId}`);
+    } catch (err) {
+      setCreateError(
+        err instanceof Error ? err.message : "Gagal membuat lesson",
+      );
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -45,6 +47,12 @@ export function LessonList({ projectId, dataset }: LessonListProps) {
         onChange={setSearchQuery}
         placeholder="Search lessons..."
       />
+
+      {createError && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {createError}
+        </p>
+      )}
 
       <Suspense fallback={<HierarchicalListSkeleton />}>
         <LessonListContent

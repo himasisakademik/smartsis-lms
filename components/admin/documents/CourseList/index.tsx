@@ -1,33 +1,35 @@
 "use client";
 
-import { Suspense, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  useApplyDocumentActions,
-  createDocument,
-  createDocumentHandle,
-} from "@sanity/sdk-react";
+import { Suspense, useState } from "react";
 import { ListPageHeader, SearchInput } from "@/components/admin/shared";
 import { DocumentGridSkeleton } from "@/components/admin/shared/DocumentSkeleton";
+import { createAdminDocument } from "../createAdminDocument";
 import { CourseGrid } from "./CourseGrid";
 import type { CourseListProps } from "./types";
 
 export function CourseList({ projectId, dataset }: CourseListProps) {
   const router = useRouter();
-  const [isCreating, startTransition] = useTransition();
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const apply = useApplyDocumentActions();
 
-  const handleCreateCourse = () => {
-    startTransition(async () => {
-      const newDocHandle = createDocumentHandle({
-        documentId: crypto.randomUUID(),
-        documentType: "course",
-      });
+  const handleCreateCourse = async () => {
+    if (isCreating) return;
 
-      await apply(createDocument(newDocHandle));
-      router.push(`/admin/courses/${newDocHandle.documentId}`);
-    });
+    setIsCreating(true);
+    setCreateError(null);
+
+    try {
+      const result = await createAdminDocument("course");
+      router.push(`/admin/courses/${result.documentId}`);
+    } catch (err) {
+      setCreateError(
+        err instanceof Error ? err.message : "Gagal membuat course",
+      );
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -45,6 +47,12 @@ export function CourseList({ projectId, dataset }: CourseListProps) {
         onChange={setSearchQuery}
         placeholder="Search courses..."
       />
+
+      {createError && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {createError}
+        </p>
+      )}
 
       <Suspense fallback={<DocumentGridSkeleton count={4} />}>
         <CourseGrid
