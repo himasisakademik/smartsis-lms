@@ -8,7 +8,13 @@ import AdminHeader from "@/components/admin/layout/AdminHeader";
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/admin"
+      signUpFallbackRedirectUrl="/admin"
+      afterSignOutUrl="/"
+    >
       <Providers>
         <div className="min-h-screen bg-slate-50 text-slate-900">
           <div

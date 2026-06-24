@@ -5,6 +5,10 @@ import { TutorWidget } from "@/components/tutor/TutorWidget";
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/dashboard"
+      signUpFallbackRedirectUrl="/dashboard"
       afterSignOutUrl="/"
       appearance={{
         variables: {

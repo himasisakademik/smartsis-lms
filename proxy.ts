@@ -10,13 +10,19 @@ const isProtectedRoute = createRouteMatcher([
 const isWebhookRoute = createRouteMatcher(["/api/webhooks(.*)"]);
 const isPublicRoute = createRouteMatcher(["/verify(.*)"]);
 
-export default clerkMiddleware(async (auth, req) => {
-  if (isWebhookRoute(req)) return;
-  if (isPublicRoute(req)) return;
-  if (isProtectedRoute(req)) {
-    await auth.protect();
-  }
-});
+export default clerkMiddleware(
+  async (auth, req) => {
+    if (isWebhookRoute(req)) return;
+    if (isPublicRoute(req)) return;
+    if (isProtectedRoute(req)) {
+      await auth.protect();
+    }
+  },
+  {
+    signInUrl: "/sign-in",
+    signUpUrl: "/sign-up",
+  },
+);
 
 export const config = {
   matcher: [
