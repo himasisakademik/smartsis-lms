@@ -17,7 +17,4 @@ export default defineConfig({
     structureTool({ structure }),
     visionTool({ defaultApiVersion: apiVersion }),
   ],
-  auth: {
-    loginMethod: "token",
-  },
 });
