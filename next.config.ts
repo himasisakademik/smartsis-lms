@@ -41,6 +41,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "2vmlrlyf";
+    return [
+      {
+        source: "/_sanity/:path*",
+        destination: `https://${projectId}.api.sanity.io/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
