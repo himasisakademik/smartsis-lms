@@ -116,7 +116,7 @@ function ReviewCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="font-semibold text-white text-sm">
+              <span className="font-semibold text-slate-800 text-sm">
                 {review.userName ?? "Anonymous"}
               </span>
               {isOwn && (
@@ -134,7 +134,7 @@ function ReviewCard({
             <StarRating rating={review.rating ?? 0} size="sm" />
           </div>
 
-          <p className="mt-2.5 text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
+          <p className="mt-2.5 text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
             {review.comment}
           </p>
         </div>
@@ -213,7 +213,7 @@ function ReviewForm({
       onSubmit={handleSubmit}
       className="p-6 rounded-2xl border border-slate-200 bg-white space-y-5"
     >
-      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+      <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
         <MessageSquare className="w-5 h-5 text-blue-600" />
         {isEditing ? "Update Your Review" : "Write a Review"}
       </h3>
@@ -235,7 +235,7 @@ function ReviewForm({
           maxLength={1000}
           rows={4}
           placeholder="Share your experience with this course..."
-          className="w-full bg-white/80 border border-slate-200 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-600/40 focus:border-blue-600/30 resize-none transition-all"
+          className="w-full bg-white/80 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/40 focus:border-blue-600/30 resize-none transition-all"
         />
 
         <div className="flex items-center justify-between">
@@ -289,7 +289,7 @@ export function CourseReviews({
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white tracking-tight">
+        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
           Reviews
         </h2>
         <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">
@@ -300,7 +300,7 @@ export function CourseReviews({
       {reviews.length > 0 && (
         <div className="flex items-center gap-8 p-6 rounded-2xl border border-slate-200 bg-white">
           <div className="text-center">
-            <div className="text-5xl font-black text-white tracking-tight">
+            <div className="text-5xl font-black text-slate-800 tracking-tight">
               {avgRating.toFixed(1)}
             </div>
             <StarRating rating={Math.round(avgRating)} size="sm" />
