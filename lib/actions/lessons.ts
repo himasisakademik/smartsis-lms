@@ -41,7 +41,6 @@ export async function toggleLessonCompletion(
 
   try {
     if (!markComplete) {
-      // Prevent un-completing lessons
       return { success: false, isCompleted: true };
     }
 
@@ -54,7 +53,6 @@ export async function toggleLessonCompletion(
     revalidatePath(`/lessons/${lessonSlug}`);
     revalidatePath("/dashboard");
 
-    // Award XP on lesson completion
     let xpGained: number | undefined;
     let newBadges: string[] | undefined;
 

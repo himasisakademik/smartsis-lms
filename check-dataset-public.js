@@ -3,7 +3,6 @@ const { createClient } = require('@sanity/client');
 const projectId = '2vmlrlyf';
 const dataset = 'production';
 
-// Client WITHOUT token
 const client = createClient({
   projectId,
   dataset,

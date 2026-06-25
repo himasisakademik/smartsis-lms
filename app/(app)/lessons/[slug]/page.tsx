@@ -23,7 +23,6 @@ export default async function LessonPage({ params }: LessonPageProps) {
     notFound();
   }
 
-  // Fetch quiz result if user is logged in and lesson has quiz
   const quizResult =
     userId && lesson.quiz && lesson.quiz.length > 0
       ? await getQuizResult(lesson._id)

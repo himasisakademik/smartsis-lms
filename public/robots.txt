@@ -1,5 +1,3 @@
-# Robots.txt — SMARTSIS LMS
-# Block crawlers from sensitive paths
 
 User-agent: *
 Allow: /
@@ -12,5 +10,4 @@ Disallow: /studio/*
 Disallow: /dashboard
 Disallow: /dashboard/*
 
-# Sitemap
 Sitemap: https://smartsis.himasis.org/sitemap.xml

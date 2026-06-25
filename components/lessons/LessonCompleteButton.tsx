@@ -20,12 +20,12 @@ export function LessonCompleteButton({
   const [isPending, startTransition] = useTransition();
 
   const handleToggle = () => {
-    if (isCompleted) return; // Prevent untoggling
+    if (isCompleted) return;
     startTransition(async () => {
       const result = await toggleLessonCompletion(
         lessonId,
         lessonSlug,
-        true, // Always force true when clicked
+        true,
       );
       if (result.success) {
         setIsCompleted(true);

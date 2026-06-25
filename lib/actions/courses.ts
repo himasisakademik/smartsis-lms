@@ -56,7 +56,6 @@ export async function toggleCourseCompletion(
     revalidatePath(`/courses/${courseSlug}`);
     revalidatePath("/dashboard");
 
-    // Award XP on course completion
     let xpGained: number | undefined;
     let newBadges: string[] | undefined;
 

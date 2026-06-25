@@ -64,7 +64,6 @@ export function LessonPageContent({
         : null;
   }
 
-  // Prepare quiz questions (strip isCorrect for client-side)
   const quizQuestions = (lesson as any).quiz as
     | Array<{
         _key: string;
@@ -131,7 +130,6 @@ export function LessonPageContent({
           </div>
         )}
 
-        {/* Quiz Section */}
         {hasQuiz && userId && (
           <div className="mb-6">
             <QuizSection
