@@ -15,9 +15,10 @@ export default function StudioClientWrapper({
   useEffect(() => {
     if (typeof window !== "undefined" && projectId && sanityToken) {
       try {
-        localStorage.setItem(`__studio_auth_token_${projectId}`, sanityToken);
-        localStorage.setItem(`__sanity_auth_token_${projectId}`, sanityToken);
-        localStorage.setItem("__sanity_auth_token", sanityToken);
+        const tokenData = JSON.stringify({ token: sanityToken });
+        localStorage.setItem(`__studio_auth_token_${projectId}`, tokenData);
+        localStorage.setItem(`__sanity_auth_token_${projectId}`, tokenData);
+        localStorage.setItem("__sanity_auth_token", tokenData);
       } catch (err) {
         console.error("Failed to set sanity token in localStorage:", err);
       }
