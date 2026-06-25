@@ -17,17 +17,17 @@ export const GlobalSearch = () => {
 
   return (
     <form onSubmit={handleSearch} className="relative group w-full max-w-md">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-white transition-colors" />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search..."
-        className="bg-transparent border-none py-2.5 pl-10 pr-12 w-full text-sm text-white placeholder:text-slate-600 focus:outline-none rounded-xl bg-white border border-slate-200 backdrop-blur-xl focus:bg-slate-50 transition-all shadow-lg"
+        className="py-2.5 pl-10 pr-12 w-full text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none rounded-xl bg-white border border-slate-200 focus:border-blue-500 focus:bg-slate-50 transition-all shadow-md"
       />
 
       <div className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded bg-slate-50 border border-slate-200 text-[10px] font-mono text-slate-500">
-        Command K
+        Cmd K
       </div>
     </form>
   );

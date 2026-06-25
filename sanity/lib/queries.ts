@@ -105,7 +105,8 @@ export const COURSE_BY_SLUG_QUERY = defineQuery(`*[
 
 export const STATS_QUERY = defineQuery(`{
   "courseCount": count(*[_type == "course"]),
-  "lessonCount": count(*[_type == "lesson"])
+  "lessonCount": count(*[_type == "lesson"]),
+  "studentCount": count(*[_type == "userProgress"])
 }`);
 
 export const DASHBOARD_COURSES_QUERY = defineQuery(`*[

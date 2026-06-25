@@ -16,6 +16,8 @@ import {
 import { sanityFetch } from "@/sanity/lib/live";
 import { FEATURED_COURSES_QUERY, STATS_QUERY } from "@/sanity/lib/queries";
 import { currentUser } from "@clerk/nextjs/server";
+import { ScrollReveal } from "@/components/ScrollReveal";
+import { Logo } from "@/components/Logo";
 
 export default async function Home() {
   const [{ data: courses }, { data: stats }, user] = await Promise.all([
@@ -81,7 +83,7 @@ export default async function Home() {
                 </Link>
               </div>
 
-              <div className="mt-20 w-full max-w-3xl mx-auto animate-fade-in opacity-0 [animation-delay:800ms]">
+              <ScrollReveal direction="up" delay={500} className="mt-20 w-full max-w-3xl mx-auto">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all">
                     <div className="text-3xl md:text-4xl font-bold text-slate-900 mb-1">
@@ -100,30 +102,30 @@ export default async function Home() {
                     </div>
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all">
+                    <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-1">
+                      {stats?.studentCount ?? 0}
+                    </div>
+                    <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+                      Mahasiswa Terdaftar
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all">
                     <div className="text-3xl md:text-4xl font-bold text-slate-900 mb-1">
                       100%
                     </div>
                     <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">
-                      Gratis
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all">
-                    <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-1">
-                      <GraduationCap className="w-8 h-8 md:w-10 md:h-10 mx-auto" />
-                    </div>
-                    <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">
-                      Bersertifikat
+                      Gratis & Bersertifikat
                     </div>
                   </div>
                 </div>
-              </div>
+              </ScrollReveal>
             </div>
           </div>
         </section>
 
         <section className="py-32 relative">
           <div className="container mx-auto px-6 max-w-7xl">
-            <div className="max-w-2xl mb-20">
+            <ScrollReveal direction="left" className="max-w-2xl mb-20">
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
                 Kenapa belajar di{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-sky-500">
@@ -135,144 +137,152 @@ export default async function Home() {
                 Platform yang dirancang khusus untuk mendukung perjalanan
                 akademik mahasiswa Sistem Informasi Himasis.
               </p>
-            </div>
+            </ScrollReveal>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="group relative overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 md:col-span-2 min-h-[280px] hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative z-10 flex flex-col h-full justify-between">
-                  <div>
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-6 border border-blue-100">
-                      <Layers className="w-6 h-6 text-blue-600" />
+              <ScrollReveal direction="left" delay={100} className="md:col-span-2">
+                <div className="group relative overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 h-full min-h-[280px] hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10 flex flex-col h-full justify-between">
+                    <div>
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-6 border border-blue-100">
+                        <Layers className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-900 mb-3">
+                        Kurikulum Terstruktur
+                      </h3>
+                      <p className="text-slate-500 max-w-md leading-relaxed">
+                        Materi disusun secara sistematis dari dasar hingga lanjut.
+                        Setiap kursus terbagi dalam modul dan pelajaran yang mudah
+                        diikuti langkah demi langkah.
+                      </p>
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-3">
-                      Kurikulum Terstruktur
-                    </h3>
-                    <p className="text-slate-500 max-w-md leading-relaxed">
-                      Materi disusun secara sistematis dari dasar hingga lanjut.
-                      Setiap kursus terbagi dalam modul dan pelajaran yang mudah
-                      diikuti langkah demi langkah.
-                    </p>
-                  </div>
-                  <div className="mt-8 flex flex-wrap gap-2">
-                    <div className="text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full text-slate-500">
-                      Langkah demi Langkah
-                    </div>
-                    <div className="text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full text-slate-500">
-                      Video Pembelajaran
-                    </div>
-                    <div className="text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full text-slate-500">
-                      Materi Tertulis
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="group relative overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 min-h-[280px] hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-bl from-emerald-50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-6 border border-emerald-100">
-                    <Shield className="w-6 h-6 text-emerald-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">
-                    Akses Gratis Selamanya
-                  </h3>
-                  <p className="text-slate-500 leading-relaxed">
-                    Seluruh materi tersedia tanpa biaya. Cukup daftar dan mulai
-                    belajar — tanpa batasan waktu dan tanpa biaya tersembunyi.
-                  </p>
-                </div>
-              </div>
-
-              <div className="group relative overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 min-h-[280px] hover:border-amber-200 hover:shadow-xl hover:shadow-amber-500/5 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mb-6 border border-amber-100">
-                    <Zap className="w-6 h-6 text-amber-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">
-                    Lacak Progresmu
-                  </h3>
-                  <p className="text-slate-500 leading-relaxed">
-                    Pantau kemajuan belajar lewat dashboard pribadi. Lihat
-                    kursus yang sedang diambil, pelajaran yang selesai, dan jam
-                    belajar yang sudah terakumulasi.
-                  </p>
-                </div>
-              </div>
-
-              <div className="group relative overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 md:col-span-2 min-h-[280px] hover:border-sky-200 hover:shadow-xl hover:shadow-sky-500/5 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-tl from-sky-50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between h-full gap-6">
-                  <div className="max-w-md">
-                    <div className="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center mb-6 border border-sky-100">
-                      <Trophy className="w-6 h-6 text-sky-600" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-3">
-                      Sertifikat Pembelajaran
-                    </h3>
-                    <p className="text-slate-500 leading-relaxed">
-                      Selesaikan seluruh modul kursus dan dapatkan sertifikat
-                      digital sebagai bukti kompetensi. Tampilkan di CV dan
-                      profil profesionalmu.
-                    </p>
-                  </div>
-                  <div className="hidden md:flex items-center justify-center">
-                    <div className="relative w-28 h-28">
-                      <svg
-                        className="w-28 h-28 -rotate-90"
-                        viewBox="0 0 100 100"
-                      >
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          fill="none"
-                          stroke="rgba(30,58,95,0.08)"
-                          strokeWidth="8"
-                        />
-
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          fill="none"
-                          stroke="url(#gradient)"
-                          strokeWidth="8"
-                          strokeDasharray="251.2"
-                          strokeDashoffset="0"
-                          strokeLinecap="round"
-                        />
-
-                        <defs>
-                          <linearGradient
-                            id="gradient"
-                            x1="0%"
-                            y1="0%"
-                            x2="100%"
-                            y2="0%"
-                          >
-                            <stop
-                              offset="0%"
-                              style={{ stopColor: "#2563eb" }}
-                            />
-
-                            <stop
-                              offset="100%"
-                              style={{ stopColor: "#0ea5e9" }}
-                            />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-lg font-bold text-slate-900">
-                          100%
-                        </span>
+                    <div className="mt-8 flex flex-wrap gap-2">
+                      <div className="text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full text-slate-500">
+                        Langkah demi Langkah
+                      </div>
+                      <div className="text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full text-slate-500">
+                        Video Pembelajaran
+                      </div>
+                      <div className="text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full text-slate-500">
+                        Materi Tertulis
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </ScrollReveal>
+
+              <ScrollReveal direction="right" delay={200}>
+                <div className="group relative overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 h-full min-h-[280px] hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-bl from-emerald-50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-6 border border-emerald-100">
+                      <Shield className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900 mb-3">
+                      Akses Gratis Selamanya
+                    </h3>
+                    <p className="text-slate-500 leading-relaxed">
+                      Seluruh materi tersedia tanpa biaya. Cukup daftar dan mulai
+                      belajar — tanpa batasan waktu dan tanpa biaya tersembunyi.
+                    </p>
+                  </div>
+                </div>
+              </ScrollReveal>
+
+              <ScrollReveal direction="left" delay={100}>
+                <div className="group relative overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 h-full min-h-[280px] hover:border-amber-200 hover:shadow-xl hover:shadow-amber-500/5 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10">
+                    <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mb-6 border border-amber-100">
+                      <Zap className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900 mb-3">
+                      Lacak Progresmu
+                    </h3>
+                    <p className="text-slate-500 leading-relaxed">
+                      Pantau kemajuan belajar lewat dashboard pribadi. Lihat
+                      kursus yang sedang diambil, pelajaran yang selesai, dan jam
+                      belajar yang sudah terakumulasi.
+                    </p>
+                  </div>
+                </div>
+              </ScrollReveal>
+
+              <ScrollReveal direction="right" delay={200} className="md:col-span-2">
+                <div className="group relative overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 h-full min-h-[280px] hover:border-sky-200 hover:shadow-xl hover:shadow-sky-500/5 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-tl from-sky-50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between h-full gap-6">
+                    <div className="max-w-md">
+                      <div className="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center mb-6 border border-sky-100">
+                        <Trophy className="w-6 h-6 text-sky-600" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-900 mb-3">
+                        Sertifikat Pembelajaran
+                      </h3>
+                      <p className="text-slate-500 leading-relaxed">
+                        Selesaikan seluruh modul kursus dan dapatkan sertifikat
+                        digital sebagai bukti kompetensi. Tampilkan di CV dan
+                        profil profesionalmu.
+                      </p>
+                    </div>
+                    <div className="hidden md:flex items-center justify-center">
+                      <div className="relative w-28 h-28">
+                        <svg
+                          className="w-28 h-28 -rotate-90"
+                          viewBox="0 0 100 100"
+                        >
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke="rgba(30,58,95,0.08)"
+                            strokeWidth="8"
+                          />
+
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke="url(#gradient)"
+                            strokeWidth="8"
+                            strokeDasharray="251.2"
+                            strokeDashoffset="0"
+                            strokeLinecap="round"
+                          />
+
+                          <defs>
+                            <linearGradient
+                              id="gradient"
+                              x1="0%"
+                              y1="0%"
+                              x2="100%"
+                              y2="0%"
+                            >
+                              <stop
+                                offset="0%"
+                                style={{ stopColor: "#2563eb" }}
+                              />
+
+                              <stop
+                                offset="100%"
+                                style={{ stopColor: "#0ea5e9" }}
+                              />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-lg font-bold text-slate-900">
+                            100%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
             </div>
           </div>
         </section>
@@ -282,7 +292,7 @@ export default async function Home() {
           className="py-32 bg-slate-50 border-t border-slate-200"
         >
           <div className="container mx-auto px-6 max-w-6xl">
-            <div className="flex items-end justify-between mb-16">
+            <ScrollReveal direction="up" className="flex items-end justify-between mb-16">
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-slate-900">
                   Modul Pembelajaran
@@ -299,54 +309,59 @@ export default async function Home() {
                   Lihat Semua Modul
                 </Button>
               </Link>
-            </div>
+            </ScrollReveal>
 
             <div className="space-y-4">
-              {courses.map((course: any) => (
-                <Link
+              {courses.map((course: any, index: number) => (
+                <ScrollReveal
                   key={course.slug!.current!}
-                  href={`/courses/${course.slug!.current!}`}
-                  className="group block"
+                  direction="up"
+                  delay={index * 100}
                 >
-                  <div className="relative rounded-xl border border-slate-200 bg-white p-6 transition-all duration-300 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                      <div className="w-16 h-16 rounded-lg bg-slate-100 overflow-hidden relative border border-slate-200 hidden sm:block">
-                        {course.thumbnail?.asset?.url ? (
-                          <img
-                            src={course.thumbnail.asset.url}
-                            alt=""
-                            className="object-cover w-full h-full opacity-80 group-hover:opacity-100 transition-opacity"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full text-slate-300">
-                            <Code2 size={20} />
-                          </div>
-                        )}
-                      </div>
+                  <Link
+                    href={`/courses/${course.slug!.current!}`}
+                    className="group block"
+                  >
+                    <div className="relative rounded-xl border border-slate-200 bg-white p-6 transition-all duration-300 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 flex items-center justify-between">
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 rounded-lg bg-slate-100 overflow-hidden relative border border-slate-200 hidden sm:block">
+                          {course.thumbnail?.asset?.url ? (
+                            <img
+                              src={course.thumbnail.asset.url}
+                              alt=""
+                              className="object-cover w-full h-full opacity-80 group-hover:opacity-100 transition-opacity"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full text-slate-300">
+                              <Code2 size={20} />
+                            </div>
+                          )}
+                        </div>
 
-                      <div>
-                        <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
-                          {course.title}
-                        </h3>
-                        <p className="text-sm text-slate-400 line-clamp-1 max-w-md">
-                          {course.description}
-                        </p>
-                        <div className="flex items-center gap-4 mt-2 text-xs text-slate-400 font-medium">
-                          <span>{course.moduleCount ?? 0} Modul</span>
-                          <span className="w-1 h-1 rounded-full bg-slate-300" />
-                          <span>{course.lessonCount ?? 0} Pelajaran</span>
+                        <div>
+                          <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                            {course.title}
+                          </h3>
+                          <p className="text-sm text-slate-400 line-clamp-1 max-w-md">
+                            {course.description}
+                          </p>
+                          <div className="flex items-center gap-4 mt-2 text-xs text-slate-400 font-medium">
+                            <span>{course.moduleCount ?? 0} Modul</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-300" />
+                            <span>{course.lessonCount ?? 0} Pelajaran</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center text-slate-400 group-hover:text-blue-600 transition-colors">
-                      <span className="text-sm font-medium mr-2 hidden sm:block">
-                        Mulai
-                      </span>
-                      <ChevronRight className="w-4 h-4" />
+                      <div className="flex items-center text-slate-400 group-hover:text-blue-600 transition-colors">
+                        <span className="text-sm font-medium mr-2 hidden sm:block">
+                          Mulai
+                        </span>
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                </ScrollReveal>
               ))}
             </div>
 
@@ -367,7 +382,7 @@ export default async function Home() {
           <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-white" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/5 blur-[150px] rounded-full pointer-events-none" />
 
-          <div className="container mx-auto px-6 max-w-4xl relative z-10 text-center">
+          <ScrollReveal direction="up" className="container mx-auto px-6 max-w-4xl relative z-10 text-center">
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6 text-slate-900">
               Siap untuk{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-sky-500">
@@ -388,7 +403,7 @@ export default async function Home() {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-          </div>
+          </ScrollReveal>
         </section>
 
         <footer className="py-20 border-t border-slate-200 bg-white">
@@ -396,7 +411,7 @@ export default async function Home() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
               <div className="col-span-1 md:col-span-2">
                 <div className="flex items-center gap-2 mb-6">
-                  <div className="w-6 h-6 bg-blue-600 rounded-sm"></div>
+                  <Logo size={28} showText={false} />
                   <span className="font-bold text-lg tracking-tight text-slate-900">
                     SMARTSIS | Himasis
                   </span>

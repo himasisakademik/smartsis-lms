@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Layers, CheckCircle2, Sparkles, Lock } from "lucide-react";
+import { Play, Layers, CheckCircle2, BookOpen, Lock } from "lucide-react";
 import { TIER_STYLES } from "@/lib/constants";
 import { Progress } from "@/components/ui/progress";
 import type { DASHBOARD_COURSES_QUERYResult } from "@/sanity.types";
@@ -58,7 +58,7 @@ export function CourseCard({
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-slate-50">
               <div className="text-6xl opacity-30 grayscale group-hover:grayscale-0 transition-all duration-500">
-                <Sparkles className="w-16 h-16 text-blue-600" />
+                <BookOpen className="w-16 h-16 text-blue-600" />
               </div>
             </div>
           )}
