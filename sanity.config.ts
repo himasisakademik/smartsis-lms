@@ -12,9 +12,6 @@ export default defineConfig({
   basePath: "/studio",
   projectId,
   dataset,
-  apiHost: typeof window !== "undefined"
-    ? `${window.location.origin}/_sanity`
-    : "https://api.sanity.io",
   schema,
   plugins: [
     structureTool({ structure }),
