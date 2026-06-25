@@ -283,21 +283,32 @@ export function AdminDocumentEditor({
       setIsLoading(true);
       setError(null);
 
-      try {
-        const result = await fetchAdminDocument(documentType, documentId);
-        if (isMounted) {
-          setDocument(result.document);
-          setReferences(result.references);
-          setForm(formFromDocument(result.document));
+      const maxRetries = 4;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const result = await fetchAdminDocument(documentType, documentId);
+          if (isMounted) {
+            setDocument(result.document);
+            setReferences(result.references);
+            setForm(formFromDocument(result.document));
+            setError(null);
+          }
+          break;
+        } catch (err) {
+          if (attempt < maxRetries) {
+            await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+            continue;
+          }
+          if (isMounted) {
+            setError(
+              err instanceof Error ? err.message : "Gagal memuat dokumen",
+            );
+          }
         }
-      } catch (err) {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : "Gagal memuat dokumen");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+      }
+
+      if (isMounted) {
+        setIsLoading(false);
       }
     }
 

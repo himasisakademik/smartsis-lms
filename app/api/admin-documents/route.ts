@@ -326,7 +326,11 @@ async function fetchReferenceOptions() {
   };
 }
 
-async function fetchDocumentDetail(
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchDocumentDetailOnce(
   documentType: AdminDocumentType,
   documentId: string,
 ) {
@@ -345,6 +349,23 @@ async function fetchDocumentDetail(
   if (!document) return null;
 
   return toDetail(document, Boolean(published));
+}
+
+async function fetchDocumentDetail(
+  documentType: AdminDocumentType,
+  documentId: string,
+  retries = 3,
+) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const result = await fetchDocumentDetailOnce(documentType, documentId);
+    if (result) return result;
+
+    if (attempt < retries) {
+      await sleep(500 * (attempt + 1));
+    }
+  }
+
+  return null;
 }
 
 function payloadObject(body: unknown) {
