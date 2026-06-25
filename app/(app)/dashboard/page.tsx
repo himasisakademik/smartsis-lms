@@ -135,25 +135,23 @@ export default async function DashboardPage() {
       ? `/courses/${resumeCourseSlug}`
       : "/dashboard/courses";
 
-  const averageProgress = enrichedCourses.length > 0
-    ? Math.round(
-        enrichedCourses.reduce(
-          (sum: number, c: any) => sum + (c.progress || 0),
-          0
-        ) / enrichedCourses.length
-      )
-    : 0;
+  const averageProgress =
+    enrichedCourses.length > 0
+      ? Math.round(
+          enrichedCourses.reduce(
+            (sum: number, c: any) => sum + (c.progress || 0),
+            0,
+          ) / enrichedCourses.length,
+        )
+      : 0;
 
   const Sidebar = () => (
     <div className="flex flex-col h-full bg-white w-full">
-      {/* Brand Logo */}
       <div className="h-20 flex items-center px-6 border-b border-slate-200 shrink-0">
         <Logo />
       </div>
 
-      {/* Navigation and Stats */}
       <div className="p-4 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
-        {/* Navigation */}
         <div>
           <h3 className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
             Platform
@@ -183,7 +181,6 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Active Learning */}
         {activeCourses.length > 0 && (
           <div>
             <h3 className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center justify-between">
@@ -219,7 +216,6 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Stats */}
         <div>
           <h3 className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
             Your Stats
@@ -230,7 +226,9 @@ export default async function DashboardPage() {
                 <Clock className="w-3.5 h-3.5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-900">{hoursLearned}h</p>
+                <p className="text-xs font-bold text-slate-900">
+                  {hoursLearned}h
+                </p>
                 <p className="text-[10px] text-slate-400">Hours Learned</p>
               </div>
             </div>
@@ -239,7 +237,9 @@ export default async function DashboardPage() {
                 <Zap className="w-3.5 h-3.5 text-amber-600" />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-900">{totalCompletedLessons}</p>
+                <p className="text-xs font-bold text-slate-900">
+                  {totalCompletedLessons}
+                </p>
                 <p className="text-[10px] text-slate-400">Lessons Done</p>
               </div>
             </div>
@@ -248,14 +248,15 @@ export default async function DashboardPage() {
                 <Target className="w-3.5 h-3.5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-900">{averageProgress}%</p>
+                <p className="text-xs font-bold text-slate-900">
+                  {averageProgress}%
+                </p>
                 <p className="text-[10px] text-slate-400">Avg. Progress</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Achievements */}
         {completedCoursesCount > 0 && (
           <div>
             <h3 className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
@@ -285,14 +286,19 @@ export default async function DashboardPage() {
             </div>
           </div>
         )}
+
+        <div className="lg:hidden pt-2 border-t border-slate-100">
+          <h3 className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+            Rank & Progress
+          </h3>
+          <XPWidget userId={user.id} />
+        </div>
       </div>
 
-      {/* Gamification widget */}
-      <div className="mt-4 px-4 pb-4 shrink-0">
+      <div className="mt-4 px-4 pb-4 shrink-0 hidden lg:block">
         <XPWidget userId={user.id} />
       </div>
 
-      {/* User profile card */}
       <div className="p-4 border-t border-slate-200 bg-slate-50/50 shrink-0">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 hover:shadow-md transition-shadow cursor-pointer group">
           <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-sky-500 flex items-center justify-center text-xs font-bold text-white shadow-lg group-hover:scale-105 transition-transform shrink-0">
@@ -318,19 +324,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-100 flex overflow-hidden font-sans antialiased">
-      {/* Desktop Sidebar Layout */}
       <aside className="hidden lg:flex w-72 flex-col fixed inset-y-0 left-0 border-r border-slate-200 bg-white z-40">
         <Sidebar />
       </aside>
 
-      {/* Main Content */}
       <div className="flex-1 lg:ml-72 flex flex-col min-h-screen relative z-10 w-full transition-all duration-300">
-        {/* Header */}
         <header className="h-20 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-40">
-          {/* Header Backdrop */}
           <div className="absolute inset-0 bg-white/80 backdrop-blur-md border-b border-slate-200/60" />
 
-          {/* Breadcrumb (Desktop) */}
           <div className="hidden lg:flex items-center text-slate-400 text-xs font-medium gap-2 relative z-10">
             <span className="hover:text-slate-600 cursor-pointer transition-colors">
               Pages
@@ -341,7 +342,6 @@ export default async function DashboardPage() {
             </span>
           </div>
 
-          {/* Mobile Brand & Sidebar Toggle */}
           <div className="lg:hidden flex items-center gap-3 relative z-10">
             <MobileNav>
               <Sidebar />
@@ -349,36 +349,37 @@ export default async function DashboardPage() {
             <Logo size={28} showText={true} />
           </div>
 
-          {/* Right Section */}
           <div className="flex items-center gap-4 relative z-10">
-            {/* Search */}
             <div className="relative hidden sm:block group">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <GlobalSearch />
             </div>
 
-            {/* Stats Pill */}
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-medium shadow-sm">
               {completedCoursesCount > 0 ? (
                 <>
                   <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="text-amber-600">{completedCoursesCount}</span>
+                  <span className="text-amber-600">
+                    {completedCoursesCount}
+                  </span>
                   <span className="text-slate-300">/</span>
-                  <span className="text-slate-500">{enrichedCourses.length}</span>
+                  <span className="text-slate-500">
+                    {enrichedCourses.length}
+                  </span>
                 </>
               ) : (
                 <>
                   <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
-                  <span className="text-slate-500">{enrichedCourses.length} Courses</span>
+                  <span className="text-slate-500">
+                    {enrichedCourses.length} Courses
+                  </span>
                 </>
               )}
             </div>
           </div>
         </header>
 
-        {/* Main Content Area */}
         <main className="px-6 lg:px-10 pb-10 max-w-[1600px] mx-auto w-full space-y-12">
-          {/* Welcome Banner */}
           <div className="relative mt-4 group">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-sky-500 to-blue-600 rounded-3xl blur opacity-10 group-hover:opacity-20 transition-opacity duration-1000" />
             <div className="relative p-8 md:p-10 rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-xl shadow-blue-500/5">
@@ -420,7 +421,6 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               {
@@ -471,7 +471,6 @@ export default async function DashboardPage() {
             })}
           </div>
 
-          {/* Curriculum Section */}
           <section className="space-y-6">
             <div className="flex items-end justify-between border-b border-slate-200 pb-4">
               <div>
