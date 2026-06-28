@@ -1,27 +1,28 @@
-import Link from "next/link";
+import { UserButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { Logo } from "@/components/Logo";
 import {
-  BookOpen,
-  Clock,
-  Zap,
-  Play,
   Bookmark,
+  BookOpen,
   ChevronRight,
-  LayoutDashboard,
+  Clock,
   Compass,
-  Trophy,
-  Target,
   Flame,
   GraduationCap,
+  LayoutDashboard,
+  Play,
+  Target,
+  Trophy,
+  Zap,
 } from "lucide-react";
-import { sanityFetch } from "@/sanity/lib/live";
+import Image from "next/image";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CertificateDownloadButton } from "@/components/CertificateDownloadButton";
-import { GlobalSearch } from "@/components/GlobalSearch";
-import { XPWidget } from "@/components/dashboard/XPWidget";
 import { MobileNav } from "@/components/dashboard/MobileNav";
-import { UserButton } from "@clerk/nextjs";
+import { XPWidget } from "@/components/dashboard/XPWidget";
+import { GlobalSearch } from "@/components/GlobalSearch";
+import { Logo } from "@/components/Logo";
+import { sanityFetch } from "@/sanity/lib/live";
 
 import { DASHBOARD_COURSES_QUERY } from "@/sanity/lib/queries";
 
@@ -36,6 +37,22 @@ export default async function DashboardPage() {
     query: DASHBOARD_COURSES_QUERY,
     params: { userId: user.id },
   });
+  type Course = (typeof courses)[number];
+  type DashboardLesson = {
+    completedBy?: string[] | null;
+    duration?: number | null;
+    slug?: { current?: string | null } | null;
+  };
+  type DashboardModule = {
+    lessons?: DashboardLesson[] | null;
+  };
+  type EnrichedCourse = Course & {
+    modules?: DashboardModule[] | null;
+    progress: number;
+    isCompleted: boolean;
+    totalLessons: number;
+    completedLessons: number;
+  };
 
   const firstName = user.firstName ?? user.username ?? "Cadet";
 
@@ -52,22 +69,23 @@ export default async function DashboardPage() {
   let totalDurationSeconds = 0;
   let totalCompletedLessons = 0;
 
-  const isLessonCompleted = (lesson: any) => {
+  const isLessonCompleted = (lesson: DashboardLesson) => {
     return (
       Array.isArray(lesson.completedBy) && lesson.completedBy.includes(user.id)
     );
   };
 
-  const enrichedCourses = courses.map((course: any) => {
+  const enrichedCourses: EnrichedCourse[] = courses.map((course: Course) => {
+    const modules = (course.modules ?? []) as DashboardModule[];
     const courseTotalLessons =
-      course.modules?.reduce(
-        (acc: number, module: any) => acc + (module.lessons?.length || 0),
+      modules.reduce(
+        (acc: number, module) => acc + (module.lessons?.length || 0),
         0,
       ) || 0;
 
     const courseCompletedLessons =
-      course.modules?.reduce(
-        (acc: number, module: any) =>
+      modules.reduce(
+        (acc: number, module) =>
           acc + (module.lessons?.filter(isLessonCompleted)?.length || 0),
         0,
       ) || 0;
@@ -77,13 +95,12 @@ export default async function DashboardPage() {
         ? Math.round((courseCompletedLessons / courseTotalLessons) * 100)
         : 0;
 
-    if (course.modules) {
-      course.modules.forEach((module: any) => {
-        module.lessons?.forEach((lesson: any) => {
-          if (isLessonCompleted(lesson)) {
-            totalCompletedLessons++;
-            totalDurationSeconds += (lesson.duration ?? 0) * 60;
-          }
+    if (modules.length > 0) {
+      modules.forEach((module) => {
+        module.lessons?.forEach((lesson) => {
+          if (!isLessonCompleted(lesson)) return;
+          totalCompletedLessons++;
+          totalDurationSeconds += (lesson.duration ?? 0) * 60;
         });
       });
     }
@@ -94,14 +111,15 @@ export default async function DashboardPage() {
       isCompleted: progress === 100,
       totalLessons: courseTotalLessons,
       completedLessons: courseCompletedLessons,
+      modules,
     };
   });
 
   const activeCourses = enrichedCourses.filter(
-    (c: any) => c.progress > 0 && c.progress < 100,
+    (course) => course.progress > 0 && course.progress < 100,
   );
   const completedCourses = enrichedCourses.filter(
-    (c: any) => c.progress === 100,
+    (course) => course.progress === 100,
   );
   const completedCoursesCount = completedCourses.length;
 
@@ -117,7 +135,7 @@ export default async function DashboardPage() {
     if (resumeCourse.modules) {
       for (const module of resumeCourse.modules) {
         const uncompletedLesson = module.lessons?.find(
-          (l: any) => !isLessonCompleted(l),
+          (lesson: DashboardLesson) => !isLessonCompleted(lesson),
         );
         if (uncompletedLesson) {
           resumeLessonSlug = uncompletedLesson.slug?.current ?? "";
@@ -139,25 +157,28 @@ export default async function DashboardPage() {
     enrichedCourses.length > 0
       ? Math.round(
           enrichedCourses.reduce(
-            (sum: number, c: any) => sum + (c.progress || 0),
+            (sum: number, course) => sum + (course.progress || 0),
             0,
           ) / enrichedCourses.length,
         )
       : 0;
 
   const Sidebar = () => (
-    <div className="flex flex-col h-full bg-white w-full">
+    <div className="grid h-full w-full grid-rows-[80px_minmax(0,1fr)_auto_auto] overflow-hidden bg-white">
       <div className="h-20 flex items-center px-6 border-b border-slate-200 shrink-0">
         <Logo />
       </div>
 
-      <div className="p-4 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
+      <div className="flex min-h-0 flex-col gap-4 overflow-hidden px-4 py-4">
         <div>
           <h3 className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
             Platform
           </h3>
           <div className="space-y-1">
-            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-50 text-blue-700 font-medium border border-blue-100 shadow-sm relative group overflow-hidden text-left">
+            <button
+              type="button"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-50 text-blue-700 font-medium border border-blue-100 shadow-sm relative group overflow-hidden text-left"
+            >
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-blue-600 rounded-full" />
               <LayoutDashboard className="w-4 h-4 text-blue-600" />
               <span className="relative z-10">Dashboard</span>
@@ -190,7 +211,7 @@ export default async function DashboardPage() {
               </span>
             </h3>
             <div className="space-y-1">
-              {activeCourses.slice(0, 3).map((course: any) => (
+              {activeCourses.slice(0, 2).map((course) => (
                 <Link
                   key={course.slug?.current}
                   href={`/courses/${course.slug?.current}`}
@@ -221,7 +242,7 @@ export default async function DashboardPage() {
             Your Stats
           </h3>
           <div className="space-y-2 px-1">
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
               <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
                 <Clock className="w-3.5 h-3.5 text-emerald-600" />
               </div>
@@ -232,7 +253,7 @@ export default async function DashboardPage() {
                 <p className="text-[10px] text-slate-400">Hours Learned</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
               <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
                 <Zap className="w-3.5 h-3.5 text-amber-600" />
               </div>
@@ -243,7 +264,7 @@ export default async function DashboardPage() {
                 <p className="text-[10px] text-slate-400">Lessons Done</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
               <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
                 <Target className="w-3.5 h-3.5 text-blue-600" />
               </div>
@@ -258,7 +279,7 @@ export default async function DashboardPage() {
         </div>
 
         {completedCoursesCount > 0 && (
-          <div>
+          <div className="hidden xl:block">
             <h3 className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
               Achievements
             </h3>
@@ -295,7 +316,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="mt-4 px-4 pb-4 shrink-0 hidden lg:block">
+      <div className="px-4 pb-4 shrink-0 hidden lg:block">
         <XPWidget userId={user.id} />
       </div>
 
@@ -409,7 +430,10 @@ export default async function DashboardPage() {
 
                 <div className="flex items-center gap-4">
                   <Link href={resumeLink}>
-                    <button className="relative group/btn overflow-hidden rounded-full bg-blue-600 text-white px-6 py-3 font-bold text-sm shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 hover:bg-blue-700 transition-all duration-300">
+                    <button
+                      type="button"
+                      className="relative group/btn overflow-hidden rounded-full bg-blue-600 text-white px-6 py-3 font-bold text-sm shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 hover:bg-blue-700 transition-all duration-300"
+                    >
                       <span className="relative flex items-center gap-2">
                         <Play className="w-4 h-4 fill-white" />
                         Resume Learning
@@ -444,11 +468,11 @@ export default async function DashboardPage() {
                 color: "text-amber-600",
                 bg: "bg-amber-50",
               },
-            ].map((stat, i) => {
+            ].map((stat) => {
               const Icon = stat.icon;
               return (
                 <div
-                  key={i}
+                  key={stat.label}
                   className="group p-5 rounded-2xl bg-white border border-slate-200 hover:shadow-lg hover:shadow-blue-500/5 hover:border-slate-300 transition-all duration-300"
                 >
                   <div className="flex items-start justify-between">
@@ -493,83 +517,88 @@ export default async function DashboardPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {enrichedCourses.length > 0 ? (
-                enrichedCourses.map((course: any) => (
-                  <div
-                    key={course.slug!.current!}
-                    className="group relative block w-full h-full"
-                  >
-                    <div className="relative h-full flex flex-col rounded-2xl bg-white border border-slate-200 overflow-hidden hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 hover:-translate-y-1">
-                      <Link
-                        href={`/courses/${course.slug!.current!}`}
-                        className="absolute inset-0 z-10"
-                      >
-                        <span className="sr-only">
-                          View course {course.title}
-                        </span>
-                      </Link>
+                enrichedCourses.map((course) => {
+                  const slug = course.slug?.current ?? "";
 
-                      <div className="relative aspect-video w-full overflow-hidden bg-slate-100">
-                        {course.thumbnail?.asset?.url ? (
-                          <img
-                            src={course.thumbnail.asset.url}
-                            alt={course.title}
-                            className="object-cover w-full h-full opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center relative">
-                            <BookOpen className="w-8 h-8 text-slate-300" />
-                          </div>
-                        )}
-
-                        <div className="absolute top-3 right-3">
-                          <span className="text-[10px] font-bold text-slate-700 bg-white/90 backdrop-blur-md border border-slate-200 px-2 py-1 rounded-lg shadow-sm">
-                            {course.moduleCount ?? 1} Modules
+                  return (
+                    <div
+                      key={slug || course.title || "course"}
+                      className="group relative block w-full h-full"
+                    >
+                      <div className="relative h-full flex flex-col rounded-2xl bg-white border border-slate-200 overflow-hidden hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 hover:-translate-y-1">
+                        <Link
+                          href={`/courses/${slug}`}
+                          className="absolute inset-0 z-10"
+                        >
+                          <span className="sr-only">
+                            View course {course.title}
                           </span>
-                        </div>
-                      </div>
+                        </Link>
 
-                      <div className="p-5 flex flex-col flex-1 relative z-0">
-                        <h3 className="text-lg font-bold text-slate-900 leading-tight mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors relative">
-                          {course.title}
-                        </h3>
-                        <div className="mt-auto pt-4 space-y-4">
-                          <div className="flex items-center justify-between text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                            <span>Progress</span>
-                            <span
-                              className={
-                                course.progress === 100
-                                  ? "text-emerald-600"
-                                  : "text-blue-600"
-                              }
-                            >
-                              {course.progress}%
-                            </span>
-                          </div>
-                          <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full transition-all duration-500 ${
-                                course.progress === 100
-                                  ? "bg-emerald-500"
-                                  : "bg-blue-600 group-hover:bg-blue-500"
-                              }`}
-                              style={{ width: `${course.progress}%` }}
+                        <div className="relative aspect-video w-full overflow-hidden bg-slate-100">
+                          {course.thumbnail?.asset?.url ? (
+                            <Image
+                              src={course.thumbnail.asset.url}
+                              alt={course.title ?? "Course thumbnail"}
+                              fill
+                              className="object-cover w-full h-full opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                             />
-                          </div>
-
-                          {course.progress === 100 && (
-                            <div className="pt-2 relative z-20">
-                              <CertificateDownloadButton
-                                studentName={firstName}
-                                courseTitle={course.title}
-                                completedAt={new Date()}
-                              />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center relative">
+                              <BookOpen className="w-8 h-8 text-slate-300" />
                             </div>
                           )}
+
+                          <div className="absolute top-3 right-3">
+                            <span className="text-[10px] font-bold text-slate-700 bg-white/90 backdrop-blur-md border border-slate-200 px-2 py-1 rounded-lg shadow-sm">
+                              {course.moduleCount ?? 1} Modules
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-5 flex flex-col flex-1 relative z-0">
+                          <h3 className="text-lg font-bold text-slate-900 leading-tight mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors relative">
+                            {course.title}
+                          </h3>
+                          <div className="mt-auto pt-4 space-y-4">
+                            <div className="flex items-center justify-between text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                              <span>Progress</span>
+                              <span
+                                className={
+                                  course.progress === 100
+                                    ? "text-emerald-600"
+                                    : "text-blue-600"
+                                }
+                              >
+                                {course.progress}%
+                              </span>
+                            </div>
+                            <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-500 ${
+                                  course.progress === 100
+                                    ? "bg-emerald-500"
+                                    : "bg-blue-600 group-hover:bg-blue-500"
+                                }`}
+                                style={{ width: `${course.progress}%` }}
+                              />
+                            </div>
+
+                            {course.progress === 100 && (
+                              <div className="pt-2 relative z-20">
+                                <CertificateDownloadButton
+                                  studentName={firstName}
+                                  courseTitle={course.title}
+                                  completedAt={new Date()}
+                                />
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="col-span-full py-20 text-center rounded-3xl bg-white border border-dashed border-slate-300 flex flex-col items-center justify-center">
                   <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 items-center justify-center mb-4 flex animate-pulse">

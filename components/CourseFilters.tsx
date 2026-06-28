@@ -1,8 +1,14 @@
 "use client";
 
-import { Filter, ChevronDown, Check } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 export const CourseFilters = () => {
   const searchParams = useSearchParams();
@@ -14,9 +20,20 @@ export const CourseFilters = () => {
 
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isLimitOpen, setIsLimitOpen] = useState(false);
+  const [sortPosition, setSortPosition] = useState<DOMRect | null>(null);
+  const [limitPosition, setLimitPosition] = useState<DOMRect | null>(null);
 
   const sortRef = useRef<HTMLDivElement>(null);
   const limitRef = useRef<HTMLDivElement>(null);
+
+  const updatePositions = useCallback(() => {
+    if (sortRef.current) {
+      setSortPosition(sortRef.current.getBoundingClientRect());
+    }
+    if (limitRef.current) {
+      setLimitPosition(limitRef.current.getBoundingClientRect());
+    }
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -33,6 +50,51 @@ export const CourseFilters = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!isSortOpen && !isLimitOpen) return;
+
+    updatePositions();
+    window.addEventListener("resize", updatePositions);
+    window.addEventListener("scroll", updatePositions, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePositions);
+      window.removeEventListener("scroll", updatePositions, true);
+    };
+  }, [isSortOpen, isLimitOpen, updatePositions]);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsSortOpen(false);
+        setIsLimitOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
+
+  const getDropdownStyle = (
+    rect: DOMRect | null,
+    width: number,
+  ): CSSProperties => {
+    if (!rect) {
+      return { width };
+    }
+
+    const left = Math.min(
+      window.innerWidth - width - 16,
+      Math.max(16, rect.right - width),
+    );
+
+    return {
+      width,
+      left,
+      top: rect.bottom + 8,
+    };
+  };
 
   const handleSortChange = (sort: string) => {
     const params = new URLSearchParams(searchParams);
@@ -64,12 +126,17 @@ export const CourseFilters = () => {
   ];
 
   return (
-    <div className="flex items-center gap-2">
-      {}
+    <div className="flex w-full items-center gap-2 sm:w-auto">
       <div className="relative" ref={sortRef}>
         <button
-          onClick={() => setIsSortOpen(!isSortOpen)}
-          className="flex items-center gap-2 appearance-none bg-white border border-slate-200 backdrop-blur-xl text-slate-400 text-sm py-2.5 pl-4 pr-4 rounded-full focus:outline-none hover:text-slate-900 hover:bg-slate-50 transition-all min-w-[160px] justify-between"
+          type="button"
+          onClick={() => {
+            updatePositions();
+            setIsSortOpen((open) => !open);
+            setIsLimitOpen(false);
+          }}
+          className="flex min-w-[158px] items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-500 shadow-sm backdrop-blur-xl transition-all hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30 sm:min-w-[190px]"
+          aria-expanded={isSortOpen}
         >
           <span className="truncate">
             {sortOptions.find((o) => o.value === currentSort)?.label ||
@@ -81,17 +148,21 @@ export const CourseFilters = () => {
         </button>
 
         {isSortOpen && (
-          <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+          <div
+            className="fixed z-[9999] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/15 animate-in fade-in zoom-in-95 duration-200"
+            style={getDropdownStyle(sortPosition, 224)}
+          >
             <div className="p-1">
               {sortOptions.map((option) => (
                 <button
+                  type="button"
                   key={option.value}
                   onClick={() => handleSortChange(option.value)}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors flex items-center justify-between ${currentSort === option.value ? "bg-white/10 text-white font-medium" : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"}`}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition-colors ${currentSort === option.value ? "bg-blue-50 font-medium text-blue-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"}`}
                 >
                   {option.label}
                   {currentSort === option.value && (
-                    <Check className="w-3 h-3" />
+                    <Check className="h-3.5 w-3.5" />
                   )}
                 </button>
               ))}
@@ -100,11 +171,16 @@ export const CourseFilters = () => {
         )}
       </div>
 
-      {}
       <div className="relative hidden sm:block" ref={limitRef}>
         <button
-          onClick={() => setIsLimitOpen(!isLimitOpen)}
-          className="flex items-center gap-2 appearance-none bg-white border border-slate-200 backdrop-blur-xl text-slate-400 text-sm py-2.5 pl-4 pr-4 rounded-full focus:outline-none hover:text-slate-900 hover:bg-slate-50 transition-all min-w-[130px] justify-between"
+          type="button"
+          onClick={() => {
+            updatePositions();
+            setIsLimitOpen((open) => !open);
+            setIsSortOpen(false);
+          }}
+          className="flex min-w-[138px] items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-500 shadow-sm backdrop-blur-xl transition-all hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+          aria-expanded={isLimitOpen}
         >
           <span className="truncate">
             {limitOptions.find((o) => o.value === currentLimit)?.label ||
@@ -116,17 +192,21 @@ export const CourseFilters = () => {
         </button>
 
         {isLimitOpen && (
-          <div className="absolute top-full right-0 mt-2 w-40 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+          <div
+            className="fixed z-[9999] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/15 animate-in fade-in zoom-in-95 duration-200"
+            style={getDropdownStyle(limitPosition, 160)}
+          >
             <div className="p-1">
               {limitOptions.map((option) => (
                 <button
+                  type="button"
                   key={option.value}
                   onClick={() => handleLimitChange(option.value)}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors flex items-center justify-between ${currentLimit === option.value ? "bg-white/10 text-white font-medium" : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"}`}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition-colors ${currentLimit === option.value ? "bg-blue-50 font-medium text-blue-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"}`}
                 >
                   {option.label}
                   {currentLimit === option.value && (
-                    <Check className="w-3 h-3" />
+                    <Check className="h-3.5 w-3.5" />
                   )}
                 </button>
               ))}

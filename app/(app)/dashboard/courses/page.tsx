@@ -1,13 +1,14 @@
 import { currentUser } from "@clerk/nextjs/server";
+import { BookOpen } from "lucide-react";
 import { redirect } from "next/navigation";
-import { BookOpen, LayoutGrid, List } from "lucide-react";
-import { Header } from "@/components/Header";
+import { CourseFilters } from "@/components/CourseFilters";
+import { CourseViewToggle } from "@/components/CourseViewToggle";
 import { CourseCard } from "@/components/courses";
+import { Header } from "@/components/Header";
+import { Pagination } from "@/components/Pagination";
+import { SearchInput } from "@/components/SearchInput";
 import { sanityFetch } from "@/sanity/lib/live";
 import { DASHBOARD_COURSES_QUERY } from "@/sanity/lib/queries";
-import { SearchInput } from "@/components/SearchInput";
-import { CourseFilters } from "@/components/CourseFilters";
-import { Pagination } from "@/components/Pagination";
 
 interface SearchParamsProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -33,19 +34,23 @@ export default async function MyCoursesPage({
     completedLessons: number;
     progress: number;
   };
+  type LessonProgress = {
+    completedBy?: string | string[] | null;
+  };
+  type CourseModule = {
+    lessons?: LessonProgress[] | null;
+  };
 
   const allCourses = courses.reduce(
     (acc: CourseWithProgress[], course: Course) => {
-      const { total, completed } = (course.modules ?? []).reduce(
-        (stats: { total: number; completed: number }, m: { lessons: any }) =>
-          (m.lessons ?? []).reduce(
-            (
-              s: { total: number; completed: number },
-              l: { completedBy: string | string[] },
-            ) => ({
+      const modules = (course.modules ?? []) as CourseModule[];
+      const { total, completed } = modules.reduce(
+        (stats: { total: number; completed: number }, module) =>
+          (module.lessons ?? []).reduce(
+            (s: { total: number; completed: number }, lesson) => ({
               total: s.total + 1,
               completed:
-                s.completed + (l.completedBy?.includes(user.id) ? 1 : 0),
+                s.completed + (lesson.completedBy?.includes(user.id) ? 1 : 0),
             }),
             stats,
           ),
@@ -72,8 +77,9 @@ export default async function MyCoursesPage({
   const sort = (resolvedParams.sort as string) || "recent";
   const limitParam = resolvedParams.limit as string;
   const pageParam = resolvedParams.page as string;
+  const view = resolvedParams.view === "list" ? "list" : "grid";
 
-  let filteredCourses = allCourses.filter((course: CourseWithProgress) =>
+  const filteredCourses = allCourses.filter((course: CourseWithProgress) =>
     course.title?.toLowerCase().includes(query),
   );
 
@@ -82,10 +88,13 @@ export default async function MyCoursesPage({
       (a.title ?? "").localeCompare(b.title ?? ""),
     );
   } else if (sort === "progress_desc") {
-    filteredCourses.sort((a: any, b: any) => b.progress - a.progress);
+    filteredCourses.sort(
+      (a: CourseWithProgress, b: CourseWithProgress) => b.progress - a.progress,
+    );
   } else if (sort === "progress_asc") {
-    filteredCourses.sort((a: any, b: any) => a.progress - b.progress);
-  } else {
+    filteredCourses.sort(
+      (a: CourseWithProgress, b: CourseWithProgress) => a.progress - b.progress,
+    );
   }
 
   const limit =
@@ -99,22 +108,20 @@ export default async function MyCoursesPage({
   );
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 overflow-hidden">
-      {}
+    <div className="min-h-[100dvh] overflow-x-hidden bg-white text-slate-900">
       <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay pointer-events-none z-0" />
       <div className="fixed top-[-10%] right-[-5%] w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
       <div className="fixed bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-sky-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
       <Header />
 
-      <main className="relative z-10 px-6 lg:px-12 py-12 max-w-[1600px] mx-auto min-h-screen">
-        {}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 relative">
+      <main className="relative z-10 mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-12 lg:py-10">
+        <div className="relative z-30 mb-10 flex flex-col gap-6 lg:mb-12 lg:flex-row lg:items-end lg:justify-between">
           <div className="relative z-10">
-            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter mb-4">
+            <h1 className="mb-3 text-4xl font-black tracking-tighter text-slate-900 md:text-5xl">
               My Courses
             </h1>
-            <p className="text-slate-500 max-w-lg text-lg leading-relaxed">
+            <p className="max-w-lg text-base leading-relaxed text-slate-500 md:text-lg">
               Track your progress and continue mastering your skills.
               <br className="hidden md:block" />
               <span className="text-blue-600 font-medium">
@@ -123,50 +130,59 @@ export default async function MyCoursesPage({
             </p>
           </div>
 
-          {}
-          <div className="flex items-center gap-3 p-1.5 rounded-full bg-white border border-slate-200 backdrop-blur-xl shadow-2xl">
-            <SearchInput />
-            <div className="w-px h-8 bg-slate-200 hidden md:block" />
+          <div className="relative z-40 flex w-full flex-col gap-3 rounded-3xl border border-slate-200 bg-white/95 p-2 shadow-2xl shadow-slate-900/10 backdrop-blur-xl sm:flex-row sm:items-center lg:w-auto lg:rounded-full">
+            <div className="min-w-0 flex-1 lg:w-72">
+              <SearchInput />
+            </div>
+            <div className="hidden h-8 w-px bg-slate-200 lg:block" />
 
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 sm:flex-nowrap">
               <CourseFilters />
-
-              <div className="p-1 rounded-full bg-slate-50 border border-slate-200 flex gap-1 ml-2">
-                <button className="p-2 rounded-full bg-blue-50 text-blue-600 shadow-sm">
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button className="p-2 rounded-full hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-colors">
-                  <List className="w-4 h-4" />
-                </button>
-              </div>
+              <CourseViewToggle value={view} />
             </div>
           </div>
 
-          {}
           <div className="absolute -top-10 -left-10 w-full h-full bg-gradient-to-r from-blue-600/5 via-transparent to-transparent blur-3xl -z-10 opacity-50" />
         </div>
 
         {paginatedCourses.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {paginatedCourses.map((course: CourseWithProgress) => (
-                <div
-                  key={course.slug!.current!}
-                  className="group transition-all duration-500 hover:-translate-y-2"
-                >
-                  <CourseCard
-                    slug={{ current: course.slug!.current! }}
-                    title={course.title}
-                    description={course.description}
-                    thumbnail={course.thumbnail}
-                    moduleCount={course.moduleCount}
-                    lessonCount={course.totalLessons}
-                    completedLessonCount={course.completedLessons}
-                    isCompleted={course.completedBy?.includes(user.id) ?? false}
-                    showProgress
-                  />
-                </div>
-              ))}
+            <div
+              className={
+                view === "grid"
+                  ? "relative z-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                  : "relative z-10 flex flex-col gap-4"
+              }
+            >
+              {paginatedCourses.map((course: CourseWithProgress) => {
+                const slug = course.slug?.current ?? "";
+
+                return (
+                  <div
+                    key={slug || course.title || "course"}
+                    className={
+                      view === "grid"
+                        ? "group transition-all duration-500 hover:-translate-y-2"
+                        : "group"
+                    }
+                  >
+                    <CourseCard
+                      slug={{ current: slug }}
+                      variant={view}
+                      title={course.title}
+                      description={course.description}
+                      thumbnail={course.thumbnail}
+                      moduleCount={course.moduleCount}
+                      lessonCount={course.totalLessons}
+                      completedLessonCount={course.completedLessons}
+                      isCompleted={
+                        course.completedBy?.includes(user.id) ?? false
+                      }
+                      showProgress
+                    />
+                  </div>
+                );
+              })}
             </div>
 
             <Pagination totalPages={totalPages} />
@@ -185,7 +201,10 @@ export default async function MyCoursesPage({
                 ? `No results for "${query}". Try another search term.`
                 : "Browse our catalog to find your next challenge."}
             </p>
-            <button className="px-8 py-3 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">
+            <button
+              type="button"
+              className="px-8 py-3 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
+            >
               Explore Catalog
             </button>
           </div>
