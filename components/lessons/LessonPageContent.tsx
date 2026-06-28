@@ -1,14 +1,29 @@
 "use client";
 
-import Link from "next/link";
 import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { YouTubePlayer } from "./YouTubePlayer";
-import { LessonContent } from "./LessonContent";
+import type { LESSON_BY_ID_QUERYResult } from "@/sanity.types";
 import { LessonCompleteButton } from "./LessonCompleteButton";
+import { LessonContent } from "./LessonContent";
 import { LessonSidebar } from "./LessonSidebar";
 import { QuizSection } from "./QuizSection";
-import type { LESSON_BY_ID_QUERYResult } from "@/sanity.types";
+import { YouTubePlayer } from "./YouTubePlayer";
+
+type QuizQuestion = {
+  _key: string;
+  questionText: string;
+  options: Array<{
+    _key: string;
+    text: string;
+    isCorrect: boolean;
+  }>;
+  explanation?: string;
+};
+
+type LessonWithQuiz = NonNullable<LESSON_BY_ID_QUERYResult> & {
+  quiz?: QuizQuestion[] | null;
+};
 
 interface LessonPageContentProps {
   lesson: NonNullable<LESSON_BY_ID_QUERYResult>;
@@ -18,6 +33,8 @@ interface LessonPageContentProps {
     correctAnswers: number;
     totalQuestions: number;
     attempts: number;
+    xpAwarded?: boolean;
+    xpGained?: number;
   } | null;
 }
 
@@ -28,6 +45,8 @@ export function LessonPageContent({
 }: LessonPageContentProps) {
   const courses = lesson.courses ?? [];
   const activeCourse = courses[0];
+  const activeCourseSlug = activeCourse?.slug?.current ?? "";
+  const lessonSlug = lesson.slug?.current ?? "";
 
   const isCompleted = userId
     ? (lesson.completedBy?.includes(userId) ?? false)
@@ -44,14 +63,18 @@ export function LessonPageContent({
     for (const module of modules) {
       if (module.lessons) {
         for (const l of module.lessons) {
-          allLessons.push({
-            id: l._id,
-            slug: l.slug!.current!,
-            title: l.title ?? "Untitled Lesson",
-          });
           if (userId && l.completedBy?.includes(userId)) {
             completedLessonIds.push(l._id);
           }
+
+          const slug = l.slug?.current;
+          if (!slug) continue;
+
+          allLessons.push({
+            id: l._id,
+            slug,
+            title: l.title ?? "Untitled Lesson",
+          });
         }
       }
     }
@@ -64,27 +87,14 @@ export function LessonPageContent({
         : null;
   }
 
-  const quizQuestions = (lesson as any).quiz as
-    | Array<{
-        _key: string;
-        questionText: string;
-        options: Array<{
-          _key: string;
-          text: string;
-          isCorrect: boolean;
-        }>;
-        explanation?: string;
-      }>
-    | null
-    | undefined;
-
-  const hasQuiz = quizQuestions && quizQuestions.length > 0;
+  const quizQuestions = (lesson as LessonWithQuiz).quiz;
+  const hasQuiz = Boolean(quizQuestions?.length);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8">
-      {activeCourse && (
+      {activeCourse && activeCourseSlug && (
         <LessonSidebar
-          courseSlug={activeCourse.slug!.current!}
+          courseSlug={activeCourseSlug}
           courseTitle={activeCourse.title}
           modules={activeCourse.modules ?? null}
           currentLessonId={lesson._id}
@@ -111,10 +121,10 @@ export function LessonPageContent({
             )}
           </div>
 
-          {userId && (
+          {userId && lessonSlug && (
             <LessonCompleteButton
               lessonId={lesson._id}
-              lessonSlug={lesson.slug!.current!}
+              lessonSlug={lessonSlug}
               isCompleted={isCompleted}
             />
           )}
@@ -124,7 +134,9 @@ export function LessonPageContent({
           <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 md:p-8 mb-6">
             <div className="flex items-center gap-2 mb-6">
               <BookOpen className="w-5 h-5 text-blue-600" />
-              <h2 className="text-lg font-semibold text-slate-900">Lesson Notes</h2>
+              <h2 className="text-lg font-semibold text-slate-900">
+                Lesson Notes
+              </h2>
             </div>
             <LessonContent content={lesson.content} />
           </div>
@@ -135,7 +147,7 @@ export function LessonPageContent({
             <QuizSection
               lessonId={lesson._id}
               lessonTitle={lesson.title ?? "Untitled Lesson"}
-              questions={quizQuestions}
+              questions={quizQuestions ?? []}
               previousResult={quizResult ?? null}
             />
           </div>

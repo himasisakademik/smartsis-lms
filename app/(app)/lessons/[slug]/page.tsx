@@ -1,10 +1,10 @@
-import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { LessonPageContent } from "@/components/lessons";
+import { getQuizResult } from "@/lib/actions/quiz";
 import { sanityFetch } from "@/sanity/lib/live";
 import { LESSON_BY_SLUG_QUERY } from "@/sanity/lib/queries";
-import { getQuizResult } from "@/lib/actions/quiz";
 
 interface LessonPageProps {
   params: Promise<{ slug: string }>;
@@ -62,6 +62,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
                   correctAnswers: quizResult.correctAnswers,
                   totalQuestions: quizResult.totalQuestions,
                   attempts: quizResult.attempts,
+                  xpAwarded: quizResult.xpAwarded,
+                  xpGained: quizResult.xpGained,
                 }
               : null
           }

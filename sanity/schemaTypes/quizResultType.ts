@@ -1,5 +1,5 @@
-import { defineField, defineType, defineArrayMember } from "sanity";
 import { EditIcon } from "@sanity/icons";
+import { defineArrayMember, defineField, defineType } from "sanity";
 
 export const quizResultType = defineType({
   name: "quizResult",
@@ -74,6 +74,23 @@ export const quizResultType = defineType({
       title: "Attempt Number",
       type: "number",
       initialValue: 1,
+    }),
+    defineField({
+      name: "xpAwarded",
+      title: "XP Awarded",
+      type: "boolean",
+      initialValue: false,
+    }),
+    defineField({
+      name: "xpGained",
+      title: "XP Gained",
+      type: "number",
+      initialValue: 0,
+    }),
+    defineField({
+      name: "xpAwardedAt",
+      title: "XP Awarded At",
+      type: "datetime",
     }),
   ],
 

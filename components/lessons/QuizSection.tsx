@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import {
-  CheckCircle2,
-  XCircle,
-  RotateCcw,
-  Trophy,
-  Sparkles,
-  ChevronRight,
   Brain,
+  CheckCircle2,
+  ChevronRight,
   Loader2,
+  RotateCcw,
+  Sparkles,
+  Trophy,
+  XCircle,
 } from "lucide-react";
+import { useCallback, useState } from "react";
 import { submitQuiz } from "@/lib/actions/quiz";
 
 interface QuizOption {
@@ -31,6 +31,8 @@ interface PreviousResult {
   correctAnswers: number;
   totalQuestions: number;
   attempts: number;
+  xpAwarded?: boolean;
+  xpGained?: number;
 }
 
 interface QuizSectionProps {
@@ -59,12 +61,18 @@ export function QuizSection({
   const [result, setResult] = useState<{
     score: number;
     correctAnswers: number;
-    xpGained?: number;
+    xpGained: number;
     newBadges?: string[];
     isNewBest: boolean;
+    xpEligible: boolean;
+    attempts: number;
   } | null>(null);
+  const [hasSubmittedQuiz, setHasSubmittedQuiz] = useState(
+    Boolean(previousResult),
+  );
 
   const totalQuestions = questions.length;
+  const canEarnXp = !hasSubmittedQuiz;
 
   const handleStartQuiz = useCallback(() => {
     setState("taking");
@@ -121,7 +129,10 @@ export function QuizSection({
         xpGained: res.xpGained,
         newBadges: res.newBadges,
         isNewBest: res.isNewBest,
+        xpEligible: res.xpEligible,
+        attempts: res.attempts,
       });
+      setHasSubmittedQuiz(true);
       setState("submitted");
     } catch (err) {
       console.error("Quiz submit error:", err);
@@ -183,13 +194,20 @@ export function QuizSection({
           </div>
         )}
 
+        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-800">
+          {canEarnXp
+            ? "XP quiz hanya diberikan 1x pada percobaan pertama. Kamu tetap bisa mengulang quiz setelahnya, tetapi percobaan ulang tidak menambah XP leaderboard."
+            : "Quiz ini sudah pernah dikerjakan. Percobaan ulang tetap boleh untuk latihan, tetapi tidak akan menambah XP leaderboard lagi."}
+        </div>
+
         <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={handleStartQuiz}
             className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-700 to-sky-600 hover:from-blue-600 hover:to-sky-500 text-white font-semibold text-sm shadow-lg shadow-blue-700/25 transition-all"
           >
             <Sparkles className="w-4 h-4" />
-            {previousResult ? "Coba Lagi" : "Mulai Quiz"}
+            {canEarnXp ? "Mulai Quiz" : "Coba Lagi"}
           </button>
           <span className="text-xs text-slate-500">
             ⏱ ~{Math.max(1, Math.ceil(totalQuestions * 0.5))} menit
@@ -199,8 +217,14 @@ export function QuizSection({
         <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
           <Trophy className="w-3.5 h-3.5 text-amber-500" />
           <span>
-            Skor sempurna (100%) ={" "}
-            <strong className="text-amber-400">+15 Bonus XP</strong>
+            {canEarnXp ? (
+              <>
+                Skor sempurna pada percobaan pertama ={" "}
+                <strong className="text-amber-400">+15 Bonus XP</strong>
+              </>
+            ) : (
+              "Mode latihan ulang tanpa tambahan XP"
+            )}
           </span>
         </div>
       </div>
@@ -223,14 +247,21 @@ export function QuizSection({
         </div>
 
         <div className="p-6 md:p-8">
+          <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-800">
+            {canEarnXp
+              ? "Ini percobaan pertama yang bisa mendapatkan XP. Setelah submit, percobaan ulang tidak akan menambah XP lagi."
+              : "Kamu sedang latihan ulang. Jawaban dan skor terbaik tetap bisa diperbarui, tetapi XP tidak akan bertambah."}
+          </div>
+
           <div className="flex items-center justify-between mb-6">
             <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">
               Soal {currentQuestion + 1} dari {totalQuestions}
             </span>
             <div className="flex gap-1.5">
-              {questions.map((_, i) => (
+              {questions.map((quizQuestion, i) => (
                 <button
-                  key={i}
+                  type="button"
+                  key={quizQuestion._key}
                   onClick={() => setCurrentQuestion(i)}
                   className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
                     i === currentQuestion
@@ -257,6 +288,7 @@ export function QuizSection({
 
               return (
                 <button
+                  type="button"
                   key={option._key}
                   onClick={() => handleSelectAnswer(currentQuestion, optIdx)}
                   className={`w-full text-left flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 group ${
@@ -276,7 +308,9 @@ export function QuizSection({
                   </div>
                   <span
                     className={`text-sm leading-relaxed ${
-                      isSelected ? "text-slate-900 font-semibold" : "text-slate-600"
+                      isSelected
+                        ? "text-slate-900 font-semibold"
+                        : "text-slate-600"
                     }`}
                   >
                     {option.text}
@@ -288,6 +322,7 @@ export function QuizSection({
 
           <div className="flex items-center justify-between">
             <button
+              type="button"
               onClick={handlePrev}
               disabled={currentQuestion === 0}
               className="px-4 py-2.5 rounded-xl text-sm font-medium border border-slate-200 text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
@@ -297,6 +332,7 @@ export function QuizSection({
 
             {currentQuestion < totalQuestions - 1 ? (
               <button
+                type="button"
                 onClick={handleNext}
                 disabled={selectedIdx === undefined}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-blue-700 hover:bg-blue-600 text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
@@ -306,6 +342,7 @@ export function QuizSection({
               </button>
             ) : (
               <button
+                type="button"
                 onClick={handleSubmit}
                 disabled={!allAnswered || isSubmitting}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
@@ -371,9 +408,16 @@ export function QuizSection({
                   : "Jangan menyerah, coba lagi!"}
           </p>
 
-          {result.xpGained && result.xpGained > 0 && (
+          {result.xpGained > 0 && (
             <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium">
-              <Sparkles className="w-4 h-4" />+{result.xpGained} Bonus XP!
+              <Sparkles className="w-4 h-4" />+{result.xpGained} XP didapat
+            </div>
+          )}
+
+          {!result.xpEligible && (
+            <div className="mx-auto mt-3 max-w-md rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-500">
+              XP tidak bertambah. Point quiz hanya diberikan pada percobaan
+              pertama, sedangkan percobaan ulang dihitung sebagai latihan.
             </div>
           )}
 
@@ -434,6 +478,7 @@ export function QuizSection({
 
           <div className="pt-4 flex justify-center">
             <button
+              type="button"
               onClick={handleStartQuiz}
               className="flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-sm font-medium transition-all"
             >

@@ -1,8 +1,8 @@
 "use server";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { client, writeClient } from "@/sanity/lib/client";
 import { awardXP } from "@/lib/actions/gamification";
+import { client, writeClient } from "@/sanity/lib/client";
 
 interface QuizAnswer {
   questionIndex: number;
@@ -21,6 +21,9 @@ interface QuizResult {
   answers: QuizAnswer[];
   completedAt: string;
   attempts: number;
+  xpAwarded?: boolean;
+  xpGained?: number;
+  xpAwardedAt?: string;
 }
 
 export async function submitQuiz(
@@ -32,13 +35,23 @@ export async function submitQuiz(
   success: boolean;
   score: number;
   correctAnswers: number;
-  xpGained?: number;
+  xpGained: number;
   newBadges?: string[];
   isNewBest: boolean;
+  xpEligible: boolean;
+  attempts: number;
 }> {
   const { userId } = await auth();
   if (!userId) {
-    return { success: false, score: 0, correctAnswers: 0, isNewBest: false };
+    return {
+      success: false,
+      score: 0,
+      correctAnswers: 0,
+      xpGained: 0,
+      isNewBest: false,
+      xpEligible: false,
+      attempts: 0,
+    };
   }
 
   const correctAnswers = answers.filter((a) => a.isCorrect).length;
@@ -50,7 +63,9 @@ export async function submitQuiz(
   );
 
   const isNewBest = !existing || score > (existing.score ?? 0);
+  const xpEligible = !existing;
   const attempt = existing ? (existing.attempts ?? 1) + 1 : 1;
+  let quizResultId = existing?._id;
 
   if (existing) {
     if (isNewBest) {
@@ -73,7 +88,7 @@ export async function submitQuiz(
       await writeClient.patch(existing._id).set({ attempts: attempt }).commit();
     }
   } else {
-    await writeClient.create({
+    const created = await writeClient.create({
       _type: "quizResult",
       clerkUserId: userId,
       lessonId,
@@ -88,13 +103,16 @@ export async function submitQuiz(
       })),
       completedAt: new Date().toISOString(),
       attempts: 1,
+      xpAwarded: false,
+      xpGained: 0,
     });
+    quizResultId = created._id;
   }
 
-  let xpGained: number | undefined;
+  let xpGained = 0;
   let newBadges: string[] | undefined;
 
-  if (!existing || isNewBest) {
+  if (xpEligible && quizResultId) {
     try {
       const user = await currentUser();
       const userName = user?.firstName
@@ -103,9 +121,9 @@ export async function submitQuiz(
       const userImage = user?.imageUrl;
 
       const result = await awardXP(userId, "lesson", userName, userImage);
-      xpGained = score === 100 ? 15 : 0;
+      xpGained = result.xpGained;
+
       if (score === 100) {
-        const { writeClient: wc } = await import("@/sanity/lib/client");
         const progress = await client.fetch<{
           _id: string;
           totalXp: number;
@@ -114,12 +132,34 @@ export async function submitQuiz(
           { userId },
         );
         if (progress) {
-          await wc.patch(progress._id).inc({ totalXp: 15 }).commit();
-          xpGained = 15;
+          await writeClient
+            .patch(progress._id)
+            .inc({ totalXp: 15 })
+            .setIfMissing({ xpHistory: [] })
+            .append("xpHistory", [
+              {
+                _type: "object",
+                _key: `xp-quiz-perfect-${Date.now()}`,
+                amount: 15,
+                reason: "quiz_perfect",
+                earnedAt: new Date().toISOString(),
+              },
+            ])
+            .commit();
+          xpGained += 15;
         }
       }
 
       newBadges = result.newBadges;
+
+      await writeClient
+        .patch(quizResultId)
+        .set({
+          xpAwarded: true,
+          xpGained,
+          xpAwardedAt: new Date().toISOString(),
+        })
+        .commit();
     } catch (err) {
       console.error("Quiz XP award error:", err);
     }
@@ -132,6 +172,8 @@ export async function submitQuiz(
     xpGained,
     newBadges,
     isNewBest,
+    xpEligible,
+    attempts: attempt,
   };
 }
 
@@ -146,7 +188,7 @@ export async function getQuizResult(
       _id, clerkUserId, lessonId, lessonTitle,
       score, correctAnswers, totalQuestions,
       answers[]{ questionIndex, selectedOptionIndex, isCorrect },
-      completedAt, attempts
+      completedAt, attempts, xpAwarded, xpGained, xpAwardedAt
     }`,
     { userId, lessonId },
   );
