@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   description:
     "Master coding the modern way with expertly crafted courses, modules, and hands-on lessons.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/logo-himasis.png",
+    shortcut: "/logo-himasis.png",
+    apple: "/logo-himasis.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
