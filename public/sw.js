@@ -1,8 +1,20 @@
 
-const CACHE_NAME = "smartsis-v3";
+const CACHE_NAME = "smartsis-v4";
 const OFFLINE_URL = "/offline";
 
-const PRECACHE_ASSETS = ["/offline", "/logo-himasis.png", "/manifest.json"];
+const PRECACHE_ASSETS = [
+  "/offline",
+  "/logo-himasis.png",
+  "/manifest.json",
+  "/icons/icon-72x72.png",
+  "/icons/icon-96x96.png",
+  "/icons/icon-128x128.png",
+  "/icons/icon-144x144.png",
+  "/icons/icon-152x152.png",
+  "/icons/icon-192x192.png",
+  "/icons/icon-384x384.png",
+  "/icons/icon-512x512.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
