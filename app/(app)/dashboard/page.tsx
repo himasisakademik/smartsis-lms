@@ -148,7 +148,7 @@ export default async function DashboardPage() {
   const hoursLearned = (totalDurationSeconds / 3600).toFixed(1);
 
   const resumeLink = resumeLessonSlug
-    ? `/courses/${resumeCourseSlug}/lessons/${resumeLessonSlug}`
+    ? `/lessons/${resumeLessonSlug}`
     : resumeCourseSlug
       ? `/courses/${resumeCourseSlug}`
       : "/dashboard/courses";
